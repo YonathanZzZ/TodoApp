@@ -1,6 +1,6 @@
+require('dotenv').config(); //load environment variables defined in .env file
 const express = require('express');
 const app = express();
-const dbHandler = require('./dbHandler');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const PORT = 3001;
@@ -9,7 +9,7 @@ const saltRounds = 10;
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const auth = require('./auth');
-const jwtSecretKey = '3HdFRFcwcBfhcXboq85pBM5xQsbdwNJM';
+const dbHandler = require('./dbHandler');
 
 app.use(cors({
     origin: clientHost,
@@ -121,10 +121,7 @@ app.post('/login', async (req, res) => {
     const passwordMatch = await bcrypt.compare(password, hashedPassword);
     if (passwordMatch) {
         //generate JWT
-        const token = jwt.sign({email: email}, jwtSecretKey, {expiresIn: '7d'});
-        ``
-        // //set token as cookie in response to client
-        // res.cookie('token', token, {sameSite: 'none'});
+        const token = jwt.sign({email: email}, process.env.JWT_SECRET_KEY, {expiresIn: '7d'});
 
         res.status(200).json({token: token});
     } else {
@@ -132,9 +129,6 @@ app.post('/login', async (req, res) => {
     }
 });
 
-app.patch('/tasks/')
-
-//add listen to port 3001 with some message
 app.listen(PORT, () => {
     console.log('server is running on port ', PORT);
 });

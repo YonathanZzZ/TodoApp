@@ -1,13 +1,13 @@
 const Sequelize = require("sequelize");
 const {DataTypes} = require("sequelize");
-const UUID_LENGTH = 36;
 const HASH_LENGTH = 60;
+console.log('env_vars in dbHandler before creating sequelize: ', process.env);
 const sequelize = new Sequelize(
-    'todo_app',
-    'root',
-    'root',
+    process.env.DB_DATABASE,
+    process.env.DB_USERNAME,
+    process.env.DB_PASSWORD,
     {
-        host: 'localhost',
+        host: process.env.DB_HOST,
         dialect: 'mysql'
     }
 );
@@ -37,7 +37,7 @@ const User = sequelize.define("users", {
 // noinspection JSVoidFunctionReturnValueUsed
 const Task = sequelize.define("tasks", {
     id:{
-        type: DataTypes.STRING(UUID_LENGTH),
+        type: DataTypes.UUID,
         primaryKey: true
     },
     content: {
@@ -80,17 +80,6 @@ const deleteTask = (taskID) => {
     return Task.destroy({
         where: {
             id: taskID
-        }
-    });
-};
-
-const updateTask = (oldContent, newContent, userEmail) => {
-    return Task.update({
-        content: newContent
-    }, {
-        where: {
-            content: oldContent,
-            email: userEmail
         }
     });
 };
