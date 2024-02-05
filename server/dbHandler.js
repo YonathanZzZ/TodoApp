@@ -1,7 +1,6 @@
 const Sequelize = require("sequelize");
 const {DataTypes} = require("sequelize");
 const HASH_LENGTH = 60;
-console.log('env_vars in dbHandler before creating sequelize: ', process.env);
 const sequelize = new Sequelize(
     process.env.DB_DATABASE,
     process.env.DB_USERNAME,
@@ -53,8 +52,6 @@ const Task = sequelize.define("tasks", {
         type: DataTypes.STRING,
         allowNull: false
     }
-}, {
-    timestamps: false
 });
 
 //define relationships

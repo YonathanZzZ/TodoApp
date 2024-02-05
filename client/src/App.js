@@ -6,7 +6,7 @@ import DoneList from "./DoneList";
 import DisplayAlert from "./DisplayAlert";
 import {Box, Container, Paper, Tab, Tabs, ThemeProvider} from "@mui/material";
 import {theme} from "./theme";
-import {addTaskToDB, deleteTask, editTask, getTasksFromDB, deleteUser} from './sendRequestToServer';
+import {addTaskToDB, deleteTaskFromDB, editTaskOnDB, getTasksFromDB, deleteUserFromDB} from './sendRequestToServer';
 import {LoginPage} from "./LoginPage";
 import Cookies from "js-cookie";
 import {jwtDecode} from "jwt-decode";
@@ -45,19 +45,17 @@ function App() {
         getTasksFromDB(email, false).then(res => {
             console.log('data received in client: ', res.data);
             setTodos(res.data);
-        })
-            .catch(error => {
-                console.error('failed to retrieve tasks from db: ', error);
-            });
+        }).catch(() => {
+            setAlertMessage("Could not load tasks from server");
+        });
 
         //load done tasks from database
         getTasksFromDB(email, true).then(res => {
             console.log('done todos received in client: ', res.data);
             setDoneTodos(res.data);
-        })
-            .catch(error => {
-                console.error('failed to retrieve done tasks from db: ', error);
-            });
+        }).catch(() => {
+            setAlertMessage("Could not load tasks from server");
+        });
 
     }, [email]); //run when client loads
 
@@ -69,49 +67,62 @@ function App() {
         if (todo === "") {
             return;
         }
+    
+        const taskID = uuidv4();
 
         //create new array consisting of current todos and append the current one to it
-        const taskID = uuidv4();
-        const newTodo = {id: taskID, content: todo};
-        const newTodos = [...todos, newTodo];
-        setTodos(newTodos);
-        setTodo(""); //clear input field
 
+        const newTodo = {id: taskID, content: todo};
         //add to database (combine email with newTodo into a single json)
-        addTaskToDB({...newTodo, email: email});
+        addTaskToDB({...newTodo, email: email}).then(() => {
+            const newTodos = [...todos, newTodo];
+            setTodos(newTodos);
+            //clear input field
+            setTodo("");
+        }).catch((error) => {
+            console.error('Error adding task to db: ', error);
+            setAlertMessage("Could not upload new task to server");
+        });
     };
 
     const deleteTodo = (indexToRemove) => {
-        const newTodos = [...todos];
-        newTodos.splice(indexToRemove, 1);
-        setTodos(newTodos);
-
         //remove from db
         const taskID = todos[indexToRemove].id;
-        deleteTask(taskID);
+        deleteTaskFromDB(taskID).then(() => {
+            const newTodos = [...todos];
+            newTodos.splice(indexToRemove, 1);
+            setTodos(newTodos);
+        }).catch(() => {
+            setAlertMessage("Failed to delete task on server");
+        });
     };
 
     const deleteDoneTask = (indexToRemove) => {
         console.log('indexToRemove: ', indexToRemove);
         const taskID = doneTodos[indexToRemove].id;
 
-        const newDoneTodos = [...doneTodos];
-        newDoneTodos.splice(indexToRemove, 1);
-        setDoneTodos(newDoneTodos);
-
         //remove from db
-        deleteTask(taskID);
+        deleteTaskFromDB(taskID).then(() => {
+            const newDoneTodos = [...doneTodos];
+            newDoneTodos.splice(indexToRemove, 1);
+            setDoneTodos(newDoneTodos);
+        }).catch(() => {
+            setAlertMessage("Failed to delete task on server");
+        });
     };
 
     const editContent = (index, updatedContent) => {
         const taskID = todos[index].id;
-        const updatedTodos = [...todos];
-        updatedTodos[index].content = updatedContent;
-        setTodos(updatedTodos);
-        setEditingTodo(null);
 
         //update task in db
-        editTask({id: taskID}, {content: updatedContent});
+        editTaskOnDB({id: taskID}, {content: updatedContent}).then(() => {
+            const updatedTodos = [...todos];
+            updatedTodos[index].content = updatedContent;
+            setTodos(updatedTodos);
+            setEditingTodo(null);
+        }).catch(() => {
+            setAlertMessage("Failed to update task on server");
+        });
     };
 
     const logOut = () => {
@@ -121,10 +132,10 @@ function App() {
 
     const deleteAccount = () => {
         //request server to delete, then logout
-        deleteUser(email).then(() => {
+        deleteUserFromDB(email).then(() => {
             logOut();
-        }).catch((error) => {
-            console.error("failed to deregister user: ", error);
+        }).catch(() => {
+            setAlertMessage("Failed to delete account");
         });
     };
 
@@ -135,11 +146,12 @@ function App() {
 
         const taskID = todos[indexToRemove].id;
 
-        //remove task from todos
-        setTodos(todos.filter((todo, index) => index !== indexToRemove));
-
-        //TODO change boolean of task in db
-        editTask({id: taskID}, {done: true})
+        editTaskOnDB({id: taskID}, {done: true}).then(() => {
+            //remove task from todos
+            setTodos(todos.filter((todo, index) => index !== indexToRemove));
+        }).catch(() => {
+            setAlertMessage("Failed to update task on server");
+        })
     };
 
     const handleTabChange = (event, index) => {

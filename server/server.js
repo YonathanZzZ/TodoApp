@@ -3,13 +3,15 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const bcrypt = require('bcrypt');
-const PORT = 3001;
+const PORT = 443;
 const clientHost = 'http://localhost:3000';
 const saltRounds = 10;
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const auth = require('./auth');
 const dbHandler = require('./dbHandler');
+const https = require('https');
+const fs = require('fs');
 
 app.use(cors({
     origin: clientHost,
@@ -129,6 +131,9 @@ app.post('/login', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
+https.createServer({
+    key: fs.readFileSync('localhost-key.pem'),
+    cert: fs.readFileSync('localhost.pem'),
+},app).listen(PORT, () => {
     console.log('server is running on port ', PORT);
 });
