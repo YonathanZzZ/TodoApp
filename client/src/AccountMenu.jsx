@@ -3,6 +3,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from '@mui/icons-material/Menu';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 export const AccountMenu = ({logout, deleteAccount}) => {
     const [anchorEl, setAnchorEl] = React.useState(null);
@@ -33,7 +34,7 @@ export const AccountMenu = ({logout, deleteAccount}) => {
                     aria-expanded={open ? 'true' : undefined}
                     onClick={handleClick}
                 >
-                    <MenuIcon/>
+                    <AccountCircleIcon/>
                 </IconButton>
                 <Menu
                     id="account-menu"

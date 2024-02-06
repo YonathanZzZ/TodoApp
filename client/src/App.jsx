@@ -4,13 +4,12 @@ import TodoInput from "./TodoInput";
 import TodoList from "./TodoList";
 import DoneList from "./DoneList";
 import DisplayAlert from "./DisplayAlert";
-import {Box, Container, Paper, Tab, Tabs, ThemeProvider} from "@mui/material";
+import {AppBar, Box, Container, Paper, Tab, Tabs, ThemeProvider, Toolbar, Typography} from "@mui/material";
 import {theme} from "./theme";
 import {addTaskToDB, deleteTaskFromDB, editTaskOnDB, getTasksFromDB, deleteUserFromDB} from './sendRequestToServer';
 import {LoginPage} from "./LoginPage";
 import Cookies from "js-cookie";
 import {jwtDecode} from "jwt-decode";
-import Stack from "@mui/material/Stack";
 import {AccountMenu} from './AccountMenu';
 import {v4 as uuidv4} from 'uuid';
 
@@ -67,7 +66,7 @@ function App() {
         if (todo === "") {
             return;
         }
-    
+
         const taskID = uuidv4();
 
         //create new array consisting of current todos and append the current one to it
@@ -160,16 +159,22 @@ function App() {
 
     return (<ThemeProvider theme={theme}>
             <Container maxWidth="lg">
-                <Paper elevation={24} style={{padding: 20, marginTop: 20, textAlign: "center"}}>
+                <Paper elevation={24} style={{padding: 15, marginTop: 5, marginBottom: 20, textAlign: "center"}}>
 
                     {email ? (
                         <>
-                            <Stack direction="row" alignItems="flex-start">
-                                <AccountMenu logout={logOut} deleteAccount={deleteAccount}/>
-                            </Stack>
+                            <AppBar position="static">
+                                <Toolbar>
+                                    <Typography variant="h5" component="div" sx={{flexGrow: 1, textAlign: 'center'}}>
+                                        ToDo List
+                                    </Typography>
+                                    <AccountMenu logout={logOut} deleteAccount={deleteAccount}/>
+                                </Toolbar>
+                            </AppBar>
 
-                            <h1>ToDo List</h1>
-                            <TodoInput todo={todo} setTodo={setTodo} addTodo={addTodo}/>
+                            <Box mt={1}>
+                                <TodoInput todo={todo} setTodo={setTodo} addTodo={addTodo}/>
+                            </Box>
                             {alertMessage && <DisplayAlert message={alertMessage} onClose={closeAlert}/>}
 
                             <Box className="tabs-box">
@@ -179,11 +184,13 @@ function App() {
                                 </Tabs>
                             </Box>
 
-                            {tabIndex === 0 && <TodoList todos={todos} remove={deleteTodo}
-                                                         edit={(index, text) => editContent(index, text)}
-                                                         markAsDone={markAsDone}/>}
-                            {/*TODO add DoneList item for tabIndex === 1*/}
-                            {tabIndex === 1 && <DoneList doneTasks={doneTodos} remove={deleteDoneTask}/>}
+                            <div className="list-container">
+                                {tabIndex === 0 && <TodoList todos={todos} remove={deleteTodo}
+                                                             edit={(index, text) => editContent(index, text)}
+                                                             markAsDone={markAsDone}/>}
+                                {tabIndex === 1 && <DoneList doneTasks={doneTodos} remove={deleteDoneTask}/>}
+                            </div>
+
                         </>
                     ) : (
                         <>

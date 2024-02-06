@@ -20,7 +20,6 @@ export const LoginPage = ({setEmail, setPassword}) => {
 
             //extract jwt from response
             const token = res.data.token;
-            console.log('token received in client: ', token);
             //store jwt as cookie
             Cookies.set('token', token, {
                 expires: 7,

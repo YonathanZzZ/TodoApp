@@ -3,7 +3,8 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const bcrypt = require('bcrypt');
-const PORT = 443;
+const HTTPS_PORT = 443;
+const HTTP_PORT = 80;
 const clientHost = 'http://localhost:3000';
 const saltRounds = 10;
 const cookieParser = require('cookie-parser');
@@ -11,11 +12,20 @@ const jwt = require('jsonwebtoken');
 const auth = require('./auth');
 const dbHandler = require('./dbHandler');
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-app.use(express.static(path.join(__dirname, '../client/build')));
+app.use((req, res, next) => {
+    console.log('in secure redirect function');
+    if(!req.secure){
+        return res.redirect('https://' + req.headers.host + req.url);
+    }
+    next();
+})
 
+app.use(express.static(path.join(__dirname, '../client/build')));
+//app.enable('trust proxy')
 app.use(cors({
     origin: clientHost,
     credentials: true
@@ -136,9 +146,13 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '..client/build', 'index.html'));
 });
 
+http.createServer(app).listen(HTTP_PORT, () => {
+    console.log('server is running on port', HTTP_PORT);
+})
+
 https.createServer({
     key: fs.readFileSync('localhost-key.pem'),
     cert: fs.readFileSync('localhost.pem'),
-},app).listen(PORT, () => {
-    console.log('server is running on port ', PORT);
+},app).listen(HTTPS_PORT, () => {
+    console.log('server is running on port', HTTPS_PORT);
 });
