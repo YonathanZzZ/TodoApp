@@ -88,7 +88,6 @@ const updateTaskGeneric = (taskIdentifier, newTaskData) => {
 };
 
 const getUserTasks = (email, done) => {
-    console.log('type of variable done: ', typeof done);
     return Task.findAll({
         attributes: ['id' ,'content'],
         where: {

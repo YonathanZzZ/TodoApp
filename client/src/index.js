@@ -8,16 +8,4 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-    // <React.StrictMode>
-    //   <App />
-    // </React.StrictMode>
-    //USING STRICT MODE CAUSES THE APP TO RENDER TWICE WHEN LOADED!!! USE 'npm run build' to create a production build
-
-    <App/>
-);
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-
+root.render(<App/>);

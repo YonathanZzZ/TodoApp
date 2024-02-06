@@ -12,6 +12,9 @@ const auth = require('./auth');
 const dbHandler = require('./dbHandler');
 const https = require('https');
 const fs = require('fs');
+const path = require('path');
+
+app.use(express.static(path.join(__dirname, '../client/build')));
 
 app.use(cors({
     origin: clientHost,
@@ -21,9 +24,6 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.post('/tasks', auth.authenticateToken, (req, res) => {
-
-    console.log('request data received from client: ', req.body);
-
     const task = req.body;
 
     dbHandler.addTaskToDB(task).then(() => {
@@ -129,6 +129,11 @@ app.post('/login', async (req, res) => {
     } else {
         res.status(401).json('Invalid credentials');
     }
+});
+
+app.get('*', (req, res) => {
+    console.log('__dirname: ', __dirname);
+    res.sendFile(path.join(__dirname, '..client/build', 'index.html'));
 });
 
 https.createServer({
