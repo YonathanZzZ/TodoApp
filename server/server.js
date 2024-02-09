@@ -15,9 +15,16 @@ const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { Server } = require('socket.io');
+
+const httpServer = http.createServer(app);
+const httpsServer = https.createServer({
+    key: fs.readFileSync('localhost-key.pem'),
+    cert: fs.readFileSync('localhost.pem'),
+},app);
+const io = new Server(httpsServer);
 
 app.use((req, res, next) => {
-    console.log('in secure redirect function');
     if(!req.secure){
         return res.redirect('https://' + req.headers.host + req.url);
     }
@@ -25,7 +32,6 @@ app.use((req, res, next) => {
 })
 
 app.use(express.static(path.join(__dirname, '../client/build')));
-//app.enable('trust proxy')
 app.use(cors({
     origin: clientHost,
     credentials: true
@@ -47,8 +53,6 @@ app.post('/tasks', auth.authenticateToken, (req, res) => {
 
 app.delete('/tasks/:id', auth.authenticateToken, (req, res) => {
 
-    console.log('request data received from client: ', req.body);
-
     const taskID = req.params.id;
 
     dbHandler.deleteTask(taskID).then(() => {
@@ -61,9 +65,6 @@ app.delete('/tasks/:id', auth.authenticateToken, (req, res) => {
 });
 
 app.patch('/tasks', auth.authenticateToken, (req, res) => {
-    // const email = req.body.email;
-    // const oldContent = req.body.oldContent;
-    // const newContent = req.body.newContent;
 
     const identifier = req.body.taskIdentifier;
     const newTaskData = req.body.newTaskData;
@@ -108,14 +109,12 @@ app.post('/register', async (req, res) => {
 app.delete('/users/:email', auth.authenticateToken, (req, res) => {
     const emailToDelete = req.params.email;
 
-    console.log('IN USER DELETE SERVER ROUTE');
-
     //delete user and their tasks from db
     dbHandler.deleteUser(emailToDelete).then(() => {
         console.log('deleted user: ', emailToDelete);
         res.status(200).json('user deleted');
     }).catch((error) => {
-        console.error('failed to d  elete user: ', error);
+        console.error('failed to delete user: ', error);
         res.status(500).json('failed to delete user');
     });
 });
@@ -142,17 +141,52 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('*', (req, res) => {
-    console.log('__dirname: ', __dirname);
-    res.sendFile(path.join(__dirname, '..client/build', 'index.html'));
+    //redirect all other routes to landing page
+    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
 
-http.createServer(app).listen(HTTP_PORT, () => {
+httpServer.listen(HTTP_PORT, () => {
     console.log('server is running on port', HTTP_PORT);
-})
+});
 
-https.createServer({
-    key: fs.readFileSync('localhost-key.pem'),
-    cert: fs.readFileSync('localhost.pem'),
-},app).listen(HTTPS_PORT, () => {
+httpsServer.listen(HTTPS_PORT, () => {
     console.log('server is running on port', HTTPS_PORT);
 });
+
+io.on('connection', (socket) => {
+    console.log('a user connected with socket id:', socket.id);
+
+    let userEmail;
+
+    socket.on('email', (email) => {
+        console.log('email received from client: ', email);
+
+        //store socket in room named after the user's email
+        socket.join(email);
+
+        //initialize email variable
+        userEmail = email;
+    });
+
+    socket.on('addTask', (newTask) => {
+        console.log('received new task from socket: ', newTask);
+
+        //send task to all sockets belonging to this email, EXCEPT the sender
+        console.log('sending task to email:', userEmail);
+        socket.to(userEmail).emit('addTask', newTask);
+    });
+
+    socket.on('deleteTask', (taskID) => {
+        console.log('received id of deleted task: ', taskID);
+
+        socket.to(userEmail).emit('deleteTask', taskID);
+    });
+
+    socket.on('editTask', (data) => {
+        //data contains 'id' and 'newContent'
+        console.log('received data of edited task: ', data);
+
+        socket.to(userEmail).emit('editTask', data);
+    });
+});
+

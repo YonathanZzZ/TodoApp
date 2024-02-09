@@ -1,5 +1,5 @@
 import "./App.css";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import TodoInput from "./TodoInput";
 import TodoList from "./TodoList";
 import DoneList from "./DoneList";
@@ -12,28 +12,32 @@ import Cookies from "js-cookie";
 import {jwtDecode} from "jwt-decode";
 import {AccountMenu} from './AccountMenu';
 import {v4 as uuidv4} from 'uuid';
+import {io} from 'socket.io-client';
 
 function App() {
     const [todo, setTodo] = useState("");
     const [todos, setTodos] = useState([]);
     const [doneTodos, setDoneTodos] = useState([]);
     const [alertMessage, setAlertMessage] = useState("");
-    const [editingTodo, setEditingTodo] = useState(null);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [tabIndex, setTabIndex] = useState(0);
+    const URL = 'https://localhost:443';
+    const socketRef = useRef(null);
+
 
     useEffect(() => {
-        const token = Cookies.get('token');
-        if (!token) {
-            return;
+            const token = Cookies.get('token');
+            if (!token) {
+                return;
+            }
+
+            const decodedToken = jwtDecode(token);
+            const emailFromToken = decodedToken.email;
+
+            setEmail(emailFromToken);
         }
-
-        const decodedToken = jwtDecode(token);
-        const emailFromToken = decodedToken.email;
-
-        setEmail(emailFromToken);
-    }, []);
+    );
 
     useEffect(() => {
         if (!email) {
@@ -42,7 +46,6 @@ function App() {
 
         //load tasks from database
         getTasksFromDB(email, false).then(res => {
-            console.log('data received in client: ', res.data);
             setTodos(res.data);
         }).catch(() => {
             setAlertMessage("Could not load tasks from server");
@@ -50,13 +53,79 @@ function App() {
 
         //load done tasks from database
         getTasksFromDB(email, true).then(res => {
-            console.log('done todos received in client: ', res.data);
             setDoneTodos(res.data);
         }).catch(() => {
             setAlertMessage("Could not load tasks from server");
         });
+    }, [email]); //run when user connects
 
-    }, [email]); //run when client loads
+    useEffect(() => {
+        if (!email) {
+            return;
+        }
+
+        //socket setup
+        if (!socketRef.current) {
+            const socket = io(URL, {
+                autoConnect: false
+            });
+
+            socketRef.current = socket;
+
+            const onConnect = () => {
+                console.log('in onConnect handler func');
+                socket.emit('email', email);
+            };
+
+            const onDisconnect = () => {
+
+            };
+
+            const onTaskAdded = (newTask) => {
+
+                setTodos(prevTodos => [...prevTodos, newTask]);
+            };
+
+            const onTaskRemoved = (taskID) => {
+                console.log('onTaskRemoved event, taskID is:', taskID);
+
+                setTodos((prevTodos) => {
+                    console.log('prevTodos value:', prevTodos);
+                    return prevTodos.filter(item => item.id !== taskID)
+                });
+            };
+
+            const onTaskEdited = (data) => {
+                console.log('onTaskEdited event');
+
+                const taskID = data.id;
+                const newContent = data.newContent;
+
+                setTodos((prevTodos) =>
+                    prevTodos.map(todo => {
+                        if (todo.id === taskID) {
+                            return {...todo, content: newContent}; // change 'content' field
+                        }
+                        return todo;
+                    }));
+            };
+
+            //add event listeners
+            socket.on('connect', onConnect);
+            socket.on('disconnect', onDisconnect);
+            socket.on('addTask', onTaskAdded);
+            socket.on('deleteTask', onTaskRemoved);
+            socket.on('editTask', onTaskEdited);
+
+            socket.connect();
+        }
+
+        return () => {
+            socketRef.current.removeAllListeners();
+        }
+
+
+    }, [email]);
 
     const closeAlert = () => {
         setAlertMessage("");
@@ -70,7 +139,6 @@ function App() {
         const taskID = uuidv4();
 
         //create new array consisting of current todos and append the current one to it
-
         const newTodo = {id: taskID, content: todo};
         //add to database (combine email with newTodo into a single json)
         addTaskToDB({...newTodo, email: email}).then(() => {
@@ -78,6 +146,9 @@ function App() {
             setTodos(newTodos);
             //clear input field
             setTodo("");
+
+            //emit event to socket to update other clients of the same user
+            socketRef.current.emit('addTask', newTodo);
         }).catch((error) => {
             console.error('Error adding task to db: ', error);
             setAlertMessage("Could not upload new task to server");
@@ -91,6 +162,8 @@ function App() {
             const newTodos = [...todos];
             newTodos.splice(indexToRemove, 1);
             setTodos(newTodos);
+
+            socketRef.current.emit('deleteTask', taskID);
         }).catch(() => {
             setAlertMessage("Failed to delete task on server");
         });
@@ -118,7 +191,7 @@ function App() {
             const updatedTodos = [...todos];
             updatedTodos[index].content = updatedContent;
             setTodos(updatedTodos);
-            setEditingTodo(null);
+            socketRef.current.emit('editTask', {id: taskID, newContent: updatedContent});
         }).catch(() => {
             setAlertMessage("Failed to update task on server");
         });
@@ -130,7 +203,7 @@ function App() {
     };
 
     const deleteAccount = () => {
-        //request server to delete, then logout
+        //request server to delete user, then logout
         deleteUserFromDB(email).then(() => {
             logOut();
         }).catch(() => {
