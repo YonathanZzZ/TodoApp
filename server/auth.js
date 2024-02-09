@@ -1,7 +1,5 @@
 const jwt = require('jsonwebtoken');
-const jwtSecretKey = '3HdFRFcwcBfhcXboq85pBM5xQsbdwNJM';
 const cookieParser = require('cookie-parser');
-
 const authenticateToken = (req, res, next) => {
     cookieParser()(req, res, () => {});
     const token = req.cookies.token;
@@ -11,7 +9,7 @@ const authenticateToken = (req, res, next) => {
         return;
     }
 
-    jwt.verify(token, jwtSecretKey, (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
         if(err){
             res.status(403).send('Unauthorized: invalid token');
             return;
