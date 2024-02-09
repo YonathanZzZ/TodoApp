@@ -87,12 +87,11 @@ const updateTaskGeneric = (taskIdentifier, newTaskData) => {
     });
 };
 
-const getUserTasks = (email, done) => {
+const getUserTasks = (email) => {
     return Task.findAll({
-        attributes: ['id' ,'content'],
+        attributes: ['id' ,'content', 'done'],
         where: {
-            email: email,
-            done: done
+            email: email
         },
         raw: true
     });

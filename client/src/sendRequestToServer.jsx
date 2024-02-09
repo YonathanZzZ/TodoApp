@@ -4,8 +4,8 @@ const serverHost = 'https://localhost:443';
 
 axios.defaults.withCredentials = true;
 
-export const getTasksFromDB = (email, done) => {
-    return axios.get(`${serverHost}/tasks/${email}/${done}`)
+export const getTasksFromDB = (email) => {
+    return axios.get(`${serverHost}/tasks/${email}`);
 };
 
 export const addTaskToDB = (task) => {

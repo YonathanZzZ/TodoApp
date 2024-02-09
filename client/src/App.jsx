@@ -17,14 +17,12 @@ import {io} from 'socket.io-client';
 function App() {
     const [todo, setTodo] = useState("");
     const [todos, setTodos] = useState([]);
-    const [doneTodos, setDoneTodos] = useState([]);
     const [alertMessage, setAlertMessage] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [tabIndex, setTabIndex] = useState(0);
     const URL = 'https://localhost:443';
     const socketRef = useRef(null);
-
 
     useEffect(() => {
             const token = Cookies.get('token');
@@ -45,15 +43,8 @@ function App() {
         }
 
         //load tasks from database
-        getTasksFromDB(email, false).then(res => {
+        getTasksFromDB(email).then(res => {
             setTodos(res.data);
-        }).catch(() => {
-            setAlertMessage("Could not load tasks from server");
-        });
-
-        //load done tasks from database
-        getTasksFromDB(email, true).then(res => {
-            setDoneTodos(res.data);
         }).catch(() => {
             setAlertMessage("Could not load tasks from server");
         });
@@ -73,7 +64,6 @@ function App() {
             socketRef.current = socket;
 
             const onConnect = () => {
-                console.log('in onConnect handler func');
                 socket.emit('email', email);
             };
 
@@ -87,7 +77,6 @@ function App() {
             };
 
             const onTaskRemoved = (taskID) => {
-                console.log('onTaskRemoved event, taskID is:', taskID);
 
                 setTodos((prevTodos) => {
                     console.log('prevTodos value:', prevTodos);
@@ -110,12 +99,27 @@ function App() {
                     }));
             };
 
+            const onToggleDone = (data) => {
+
+                const taskID = data.id;
+                const currDone = data.done;
+
+                setTodos((prevTodos) =>
+                    prevTodos.map(todo => {
+                        if (todo.id === taskID) {
+                            return {...todo, done: !currDone}; // change 'content' field
+                        }
+                        return todo;
+                    }));
+            }
+
             //add event listeners
             socket.on('connect', onConnect);
             socket.on('disconnect', onDisconnect);
             socket.on('addTask', onTaskAdded);
             socket.on('deleteTask', onTaskRemoved);
             socket.on('editTask', onTaskEdited);
+            socket.on('toggleDone', onToggleDone);
 
             socket.connect();
         }
@@ -139,7 +143,7 @@ function App() {
         const taskID = uuidv4();
 
         //create new array consisting of current todos and append the current one to it
-        const newTodo = {id: taskID, content: todo};
+        const newTodo = {id: taskID, content: todo, done: false};
         //add to database (combine email with newTodo into a single json)
         addTaskToDB({...newTodo, email: email}).then(() => {
             const newTodos = [...todos, newTodo];
@@ -164,20 +168,6 @@ function App() {
             setTodos(newTodos);
 
             socketRef.current.emit('deleteTask', taskID);
-        }).catch(() => {
-            setAlertMessage("Failed to delete task on server");
-        });
-    };
-
-    const deleteDoneTask = (indexToRemove) => {
-        console.log('indexToRemove: ', indexToRemove);
-        const taskID = doneTodos[indexToRemove].id;
-
-        //remove from db
-        deleteTaskFromDB(taskID).then(() => {
-            const newDoneTodos = [...doneTodos];
-            newDoneTodos.splice(indexToRemove, 1);
-            setDoneTodos(newDoneTodos);
         }).catch(() => {
             setAlertMessage("Failed to delete task on server");
         });
@@ -211,16 +201,17 @@ function App() {
         });
     };
 
-    const markAsDone = (indexToRemove) => {
-        //add task to doneTodos
-        const newDoneTodos = [...doneTodos, todos[indexToRemove]];
-        setDoneTodos(newDoneTodos);
-
+    const toggleDone = (indexToRemove) => {
         const taskID = todos[indexToRemove].id;
+        const currDone = todos[indexToRemove].done;
 
-        editTaskOnDB({id: taskID}, {done: true}).then(() => {
+        editTaskOnDB({id: taskID}, {done: !currDone}).then(() => {
             //remove task from todos
-            setTodos(todos.filter((todo, index) => index !== indexToRemove));
+            const newTodos = [...todos];
+            newTodos[indexToRemove].done = !currDone;
+            setTodos(newTodos);
+
+            socketRef.current.emit('toggleDone', {id: taskID, done: currDone});
         }).catch(() => {
             setAlertMessage("Failed to update task on server");
         })
@@ -260,8 +251,8 @@ function App() {
                             <div className="list-container">
                                 {tabIndex === 0 && <TodoList todos={todos} remove={deleteTodo}
                                                              edit={(index, text) => editContent(index, text)}
-                                                             markAsDone={markAsDone}/>}
-                                {tabIndex === 1 && <DoneList doneTasks={doneTodos} remove={deleteDoneTask}/>}
+                                                             markAsDone={toggleDone}/>}
+                                {tabIndex === 1 && <DoneList todos={todos} remove={deleteTodo}/>}
                             </div>
 
                         </>

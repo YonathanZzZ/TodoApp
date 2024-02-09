@@ -78,11 +78,10 @@ app.patch('/tasks', auth.authenticateToken, (req, res) => {
     })
 });
 
-app.get('/tasks/:email/:done', auth.authenticateToken, (req, res) => {
+app.get('/tasks/:email', auth.authenticateToken, (req, res) => {
     const email = req.params.email;
-    const doneBoolean = req.params.done === 'true';
 
-    dbHandler.getUserTasks(email, doneBoolean).then((tasks) => {
+    dbHandler.getUserTasks(email).then((tasks) => {
         console.log('successfully retrieved tasks');
         res.status(200).json(tasks);
     }).catch((error) => {
@@ -187,6 +186,14 @@ io.on('connection', (socket) => {
         console.log('received data of edited task: ', data);
 
         socket.to(userEmail).emit('editTask', data);
+    });
+
+    socket.on('toggleDone', (data) => {
+        const taskID = data.id;
+        const currDone = data.done;
+        console.log('received data in toggleDone event: ', data);
+
+        socket.to(userEmail).emit('toggleDone', data);
     });
 });
 
