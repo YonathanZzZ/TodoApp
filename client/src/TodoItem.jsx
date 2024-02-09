@@ -45,7 +45,7 @@ export const TodoItem = ({index, entry, remove, startEditing, markAsDone}) => {
             <IconButton
                 edge="end"
                 size="small"
-                color="primary"
+                color="delete"
                 onClick={() => {
                     remove(index);
                 }}
