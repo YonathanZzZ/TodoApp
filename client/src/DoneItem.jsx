@@ -21,7 +21,7 @@ export const DoneItem = ({index, entry, remove}) => {
             <IconButton
                 edge="end"
                 size="small"
-                color="primary"
+                color="delete"
                 onClick={() => {
                     remove(index);
                 }}

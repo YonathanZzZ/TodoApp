@@ -21,6 +21,10 @@ export const theme = createTheme({
 
         neutral: {
             main: "#000000"
+        },
+
+        delete: {
+            main: "#b90000"
         }
     }
 });
