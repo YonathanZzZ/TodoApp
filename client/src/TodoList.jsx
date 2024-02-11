@@ -29,22 +29,21 @@ const TodoList = ({todos, remove, edit, markAsDone}) => {
         <List>
             {todos.map((entry, index) => (
                 //use <> (fragment) to return multiple elements (list item and divider)
-                !entry.done && (
-                    <>
-                        <ListItem>
-                            {editingIndex === index ? (
-                                <EditedItem index={index} editedText={editedText} setEditedText={setEditedText}
-                                            saveEditing={saveEditing} cancelEditing={cancelEditing}/>
-                            ) : (
-                                <TodoItem index={index} entry={entry.content} remove={remove}
-                                          startEditing={startEditing}
-                                          markAsDone={markAsDone}/>
-                            )}
-                        </ListItem>
-                        {/*add divider to list items except the last one*/}
-                        {index !== todos.length - 1 && <Divider component="li"/>}
-                    </>
-                )
+                <>
+                    <ListItem key={entry.id}>
+                        {editingIndex === index ? (
+                            <EditedItem index={index} editedText={editedText} setEditedText={setEditedText}
+                                        saveEditing={saveEditing} cancelEditing={cancelEditing}/>
+                        ) : (
+                            <TodoItem id={entry.id} entry={entry.content} remove={remove}
+                                      startEditing={startEditing}
+                                      markAsDone={markAsDone}/>
+                        )}
+                    </ListItem>
+                    {/*add divider to list items except the last one*/}
+                    {index !== todos.length - 1 && <Divider component="li"/>}
+                </>
+
             ))}
         </List>
     );

@@ -3,7 +3,7 @@ import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import React from "react";
 
-export const DoneItem = ({index, entry, remove}) => {
+export const DoneItem = ({id, entry, remove}) => {
 
     return (
         <>
@@ -23,7 +23,7 @@ export const DoneItem = ({index, entry, remove}) => {
                 size="small"
                 color="delete"
                 onClick={() => {
-                    remove(index);
+                    remove(id);
                 }}
             >
                 <DeleteIcon/>

@@ -5,7 +5,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import DoneIcon from '@mui/icons-material/Done';
 import React from "react";
 
-export const TodoItem = ({index, entry, remove, startEditing, markAsDone}) => {
+export const TodoItem = ({id, entry, remove, startEditing, markAsDone}) => {
 
     return (
         <>
@@ -14,7 +14,7 @@ export const TodoItem = ({index, entry, remove, startEditing, markAsDone}) => {
                 size="small"
                 color="primary"
                 onClick={() => {
-                    markAsDone(index);
+                    markAsDone(id);
                 }}
             >
                 <DoneIcon/>
@@ -47,7 +47,7 @@ export const TodoItem = ({index, entry, remove, startEditing, markAsDone}) => {
                 size="small"
                 color="delete"
                 onClick={() => {
-                    remove(index);
+                    remove(id);
                 }}
             >
                 <DeleteIcon/>

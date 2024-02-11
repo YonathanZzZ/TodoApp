@@ -159,12 +159,10 @@ function App() {
         });
     };
 
-    const deleteTodo = (indexToRemove) => {
+    const deleteTodo = (taskID) => {
         //remove from db
-        const taskID = todos[indexToRemove].id;
         deleteTaskFromDB(taskID).then(() => {
-            const newTodos = [...todos];
-            newTodos.splice(indexToRemove, 1);
+            const newTodos = todos.filter(todo => todo.id !== taskID);
             setTodos(newTodos);
 
             socketRef.current.emit('deleteTask', taskID);
@@ -173,13 +171,18 @@ function App() {
         });
     };
 
-    const editContent = (index, updatedContent) => {
-        const taskID = todos[index].id;
+    const editContent = (taskID, updatedContent) => {
 
         //update task in db
         editTaskOnDB({id: taskID}, {content: updatedContent}).then(() => {
-            const updatedTodos = [...todos];
-            updatedTodos[index].content = updatedContent;
+            const updatedTodos = todos.map(todo => {
+                if(todo.id === taskID){
+                    return {...todo, content: updatedContent};
+                }
+
+                return todo;
+            })
+
             setTodos(updatedTodos);
             socketRef.current.emit('editTask', {id: taskID, newContent: updatedContent});
         }).catch(() => {
@@ -201,17 +204,17 @@ function App() {
         });
     };
 
-    const toggleDone = (indexToRemove) => {
-        const taskID = todos[indexToRemove].id;
-        const currDone = todos[indexToRemove].done;
-
-        editTaskOnDB({id: taskID}, {done: !currDone}).then(() => {
+    const toggleDone = (taskID) => {
+        const indexOfTask = todos.findIndex(todo => todo.id === taskID);
+        const newDoneValue = !todos[indexOfTask].done;
+        editTaskOnDB({id: taskID}, {done: newDoneValue}).then(() => {
             //remove task from todos
             const newTodos = [...todos];
-            newTodos[indexToRemove].done = !currDone;
+            newTodos[indexOfTask].done = newDoneValue;
+
             setTodos(newTodos);
 
-            socketRef.current.emit('toggleDone', {id: taskID, done: currDone});
+            socketRef.current.emit('toggleDone', {id: taskID, done: newDoneValue});
         }).catch(() => {
             setAlertMessage("Failed to update task on server");
         })
@@ -249,10 +252,10 @@ function App() {
                             </Box>
 
                             <div className="list-container">
-                                {tabIndex === 0 && <TodoList todos={todos} remove={deleteTodo}
+                                {tabIndex === 0 && <TodoList todos={todos.filter(todo => !todo.done)} remove={deleteTodo}
                                                              edit={(index, text) => editContent(index, text)}
                                                              markAsDone={toggleDone}/>}
-                                {tabIndex === 1 && <DoneList todos={todos} remove={deleteTodo}/>}
+                                {tabIndex === 1 && <DoneList todos={todos.filter(todo => todo.done)} remove={deleteTodo}/>}
                             </div>
 
                         </>
