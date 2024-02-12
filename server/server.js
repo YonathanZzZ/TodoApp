@@ -15,16 +15,8 @@ const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-//const { Server } = require('socket.io');
 const initializeSocket = require('./socketHandler');
 const httpServer = http.createServer(app);
-const httpsServer = https.createServer({
-    key: fs.readFileSync('localhost-key.pem'),
-    cert: fs.readFileSync('localhost.pem'),
-},app);
-//const io = new Server(httpsServer);
-
-initializeSocket(httpsServer);
 
 app.use((req, res, next) => {
     if(!req.secure){
@@ -146,11 +138,26 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
 
+if(process.env.NODE_ENV !== 'production'){
+    const httpOptions = {
+        key: fs.readFileSync('server/localhost-key.pem'),
+        cert: fs.readFileSync('server/localhost.pem')
+    };
+
+    const httpsServer = https.createServer(httpOptions,app);
+
+    initializeSocket(httpsServer);
+
+    httpsServer.listen(HTTPS_PORT, () => {
+        console.log('https server is running on port', HTTPS_PORT);
+    });
+}else{
+    initializeSocket(httpServer);
+}
+
 httpServer.listen(HTTP_PORT, () => {
-    console.log('server is running on port', HTTP_PORT);
+    console.log('http server is running on port', HTTP_PORT);
 });
 
-httpsServer.listen(HTTPS_PORT, () => {
-    console.log('server is running on port', HTTPS_PORT);
-});
+
 

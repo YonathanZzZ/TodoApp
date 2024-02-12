@@ -36,7 +36,7 @@ const User = sequelize.define("users", {
 
 // noinspection JSVoidFunctionReturnValueUsed
 const Task = sequelize.define("tasks", {
-    id:{
+    id: {
         type: DataTypes.UUID,
         primaryKey: true
     },
@@ -90,7 +90,7 @@ const updateTaskGeneric = (taskIdentifier, newTaskData) => {
 
 const getUserTasks = (email) => {
     return Task.findAll({
-        attributes: ['id' ,'content', 'done'],
+        attributes: ['id', 'content', 'done'],
         where: {
             email: email
         },
@@ -116,7 +116,7 @@ const deleteUser = (email) => {
 const getUserPassword = async (email) => {
 
     const user = await User.findOne({where: {email: email}});
-    if(!user){
+    if (!user) {
         return false;
     }
 
