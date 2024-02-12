@@ -1,11 +1,9 @@
 require('dotenv').config(); //load environment variables defined in .env file
 const express = require('express');
 const app = express();
-const cors = require('cors');
 const bcrypt = require('bcrypt');
 const HTTPS_PORT = 443;
 const HTTP_PORT = process.env.PORT || 80;
-//const clientHost = 'http://localhost:3000';
 const saltRounds = 10;
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
@@ -29,10 +27,6 @@ if(process.env.NODE_ENV !== 'production'){
 
 
 app.use(express.static(path.join(__dirname, '../client/build')));
-// app.use(cors({
-//     origin: clientHost,
-//     credentials: true
-// }));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -147,6 +141,8 @@ if(process.env.NODE_ENV !== 'production'){
         cert: fs.readFileSync('server/localhost.pem')
     };
 
+    console.log('creating https server');
+
     const httpsServer = https.createServer(httpOptions,app);
 
     initializeSocket(httpsServer);
@@ -156,11 +152,13 @@ if(process.env.NODE_ENV !== 'production'){
     });
 }else{
     initializeSocket(httpServer);
+
+    httpServer.listen(HTTP_PORT, () => {
+        console.log('http server is running on port', HTTP_PORT);
+    });
 }
 
-httpServer.listen(HTTP_PORT, () => {
-    console.log('http server is running on port', HTTP_PORT);
-});
+
 
 
 
