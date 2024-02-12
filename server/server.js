@@ -5,7 +5,7 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const HTTPS_PORT = 443;
 const HTTP_PORT = 80;
-const clientHost = 'http://localhost:3000';
+//const clientHost = 'http://localhost:3000';
 const saltRounds = 10;
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
@@ -26,10 +26,10 @@ app.use((req, res, next) => {
 })
 
 app.use(express.static(path.join(__dirname, '../client/build')));
-app.use(cors({
-    origin: clientHost,
-    credentials: true
-}));
+// app.use(cors({
+//     origin: clientHost,
+//     credentials: true
+// }));
 app.use(express.json());
 app.use(cookieParser());
 
