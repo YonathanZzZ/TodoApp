@@ -18,12 +18,15 @@ const path = require('path');
 const initializeSocket = require('./socketHandler');
 const httpServer = http.createServer(app);
 
-app.use((req, res, next) => {
-    if(!req.secure){
-        return res.redirect('https://' + req.headers.host + req.url);
-    }
-    next();
-})
+if(process.env.NODE_ENV !== 'production'){
+    app.use((req, res, next) => {
+        if(!req.secure){
+            return res.redirect('https://' + req.headers.host + req.url);
+        }
+        next();
+    })
+}
+
 
 app.use(express.static(path.join(__dirname, '../client/build')));
 // app.use(cors({
