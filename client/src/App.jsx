@@ -79,13 +79,11 @@ function App() {
             const onTaskRemoved = (taskID) => {
 
                 setTodos((prevTodos) => {
-                    console.log('prevTodos value:', prevTodos);
                     return prevTodos.filter(item => item.id !== taskID)
                 });
             };
 
             const onTaskEdited = (data) => {
-                console.log('onTaskEdited event');
 
                 const taskID = data.id;
                 const newContent = data.newContent;
@@ -102,12 +100,12 @@ function App() {
             const onToggleDone = (data) => {
 
                 const taskID = data.id;
-                const currDone = data.done;
+                const newDoneValue = data.done;
 
                 setTodos((prevTodos) =>
                     prevTodos.map(todo => {
                         if (todo.id === taskID) {
-                            return {...todo, done: !currDone}; // change 'content' field
+                            return {...todo, done: newDoneValue};
                         }
                         return todo;
                     }));
