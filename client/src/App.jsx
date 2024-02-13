@@ -189,7 +189,6 @@ function App() {
 
     const editContent = (taskID, updatedContent) => {
         const index = taskIDToIndex(taskID);
-        console.log('index in editContent: ', index);
         const contentBackup = todos[index].content;
 
         const updatedTodos = [...todos];
