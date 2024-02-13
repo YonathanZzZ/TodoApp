@@ -17,14 +17,8 @@ const initializeSocket = require('./socketHandler');
 const httpServer = http.createServer(app);
 
 if(process.env.NODE_ENV !== 'production'){
-    app.use((req, res, next) => {
-        if(!req.secure){
-            return res.redirect('https://' + req.headers.host + req.url);
-        }
-        next();
-    })
-}
 
+}
 
 app.use(express.static(path.join(__dirname, '../client/build')));
 app.use(express.json());
@@ -136,6 +130,14 @@ app.get('*', (req, res) => {
 });
 
 if(process.env.NODE_ENV !== 'production'){
+    console.log('!production'); //true when running locally
+    app.use((req, res, next) => {
+        if(!req.secure){
+            return res.redirect('https://' + req.headers.host + req.url);
+        }
+        next();
+    })
+
     const httpOptions = {
         key: fs.readFileSync('server/localhost-key.pem'),
         cert: fs.readFileSync('server/localhost.pem')

@@ -5,22 +5,22 @@ import {EditedItem} from "./EditedItem";
 import {TodoItem} from "./TodoItem";
 
 const TodoList = ({todos, remove, edit, markAsDone}) => {
-    const [editingIndex, setEditingIndex] = useState(null);
+    const [editingTaskID, setEditingTaskID] = useState(null);
     const [editedText, setEditedText] = useState('');
 
-    const startEditing = (index, text) => {
-        setEditingIndex(index);
+    const startEditing = (taskID, text) => {
+        setEditingTaskID(taskID);
         setEditedText(text);
     };
 
     const cancelEditing = () => {
-        setEditingIndex(null);
+        setEditingTaskID(null);
         setEditedText('');
     };
 
-    const saveEditing = (index) => {
+    const saveEditing = (taskID) => {
         if (editedText.trim() !== '') {
-            edit(index, editedText);
+            edit(taskID, editedText);
             cancelEditing();
         }
     };
@@ -31,8 +31,8 @@ const TodoList = ({todos, remove, edit, markAsDone}) => {
                 //use <> (fragment) to return multiple elements (list item and divider)
                 <>
                     <ListItem key={entry.id}>
-                        {editingIndex === index ? (
-                            <EditedItem index={index} editedText={editedText} setEditedText={setEditedText}
+                        {editingTaskID === entry.id ? (
+                            <EditedItem taskID={entry.id} editedText={editedText} setEditedText={setEditedText}
                                         saveEditing={saveEditing} cancelEditing={cancelEditing}/>
                         ) : (
                             <TodoItem id={entry.id} entry={entry.content} remove={remove}

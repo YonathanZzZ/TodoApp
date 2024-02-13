@@ -21,8 +21,7 @@ function App() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [tabIndex, setTabIndex] = useState(0);
-    //const URL = 'https://localhost:443';
-    const URL = 'https://todo-yonathan-43eab9f75c75.herokuapp.com/';
+    const URL = window.location.origin; // use the domain that served the client
     const socketRef = useRef(null);
 
     useEffect(() => {
@@ -254,7 +253,7 @@ function App() {
 
                             <div className="list-container">
                                 {tabIndex === 0 && <TodoList todos={todos.filter(todo => !todo.done)} remove={deleteTodo}
-                                                             edit={(index, text) => editContent(index, text)}
+                                                             edit={(taskID, text) => editContent(taskID, text)}
                                                              markAsDone={toggleDone}/>}
                                 {tabIndex === 1 && <DoneList todos={todos.filter(todo => todo.done)} remove={deleteTodo}/>}
                             </div>

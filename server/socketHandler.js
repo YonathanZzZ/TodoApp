@@ -1,7 +1,7 @@
 const { Server } = require('socket.io');
 
-function initializeSocket(httpsServer) {
-    const io = new Server(httpsServer);
+function initializeSocket(httpServer) {
+    const io = new Server(httpServer);
 
     io.on('connection', (socket) => {
         console.log('a user connected with socket id:', socket.id);

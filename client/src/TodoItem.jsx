@@ -36,7 +36,7 @@ export const TodoItem = ({id, entry, remove, startEditing, markAsDone}) => {
                 size="small"
                 color="primary"
                 onClick={() => {
-                    startEditing(index, entry);
+                    startEditing(id, entry);
                 }}
             >
                 <EditIcon/>
