@@ -162,13 +162,11 @@ function App() {
     };
 
     const deleteTodo = (taskID) => {
-        const todoBackup = todos.map(todo => {
-            if (todo.id === taskID) {
-                return todo
-            }
-        });
+        const index = taskIDToIndex(taskID);
+        const todoBackup = todos[index];
+
         //remove task from client state
-        const newTodos = todos.filter(todo => todo.id !== taskID);
+        const newTodos = todos.splice(index, 1);
         setTodos(newTodos);
         //remove from db
         deleteTaskFromDB(taskID).then(() => {
