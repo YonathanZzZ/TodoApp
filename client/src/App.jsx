@@ -142,49 +142,71 @@ function App() {
 
         //create new array consisting of current todos and append the current one to it
         const newTodo = {id: taskID, content: todo, done: false};
+        const newTodos = [...todos, newTodo];
+        setTodos(newTodos);
+        //clear input field
+        setTodo("");
         //add to database (combine email with newTodo into a single json)
         addTaskToDB({...newTodo, email: email}).then(() => {
-            const newTodos = [...todos, newTodo];
-            setTodos(newTodos);
-            //clear input field
-            setTodo("");
 
             //emit event to socket to update other clients of the same user
             socketRef.current.emit('addTask', newTodo);
         }).catch((error) => {
             console.error('Error adding task to db: ', error);
-            setAlertMessage("Could not upload new task to server");
+            setAlertMessage("Failed to upload new task to server");
+
+            //delete task that failed to upload to database
+            const newTodos = todos.filter(todo => todo.id !== taskID);
+            setTodos(newTodos);
         });
     };
 
     const deleteTodo = (taskID) => {
+        const todoBackup = todos.map(todo => {
+            if (todo.id === taskID) {
+                return todo
+            }
+        });
+        //remove task from client state
+        const newTodos = todos.filter(todo => todo.id !== taskID);
+        setTodos(newTodos);
         //remove from db
         deleteTaskFromDB(taskID).then(() => {
-            const newTodos = todos.filter(todo => todo.id !== taskID);
-            setTodos(newTodos);
 
             socketRef.current.emit('deleteTask', taskID);
         }).catch(() => {
             setAlertMessage("Failed to delete task on server");
+
+            //restore task
+            const newTodos = [...todos, todoBackup];
+            setTodos(newTodos);
         });
     };
 
+    const taskIDToIndex = (taskID) => {
+        return todos.findIndex(todo => todo.id === taskID);
+    };
+
     const editContent = (taskID, updatedContent) => {
+        const index = taskIDToIndex(taskID);
+        console.log('index in editContent: ', index);
+        const contentBackup = todos[index].content;
+
+        const updatedTodos = [...todos];
+        updatedTodos[index].content = updatedContent;
+        setTodos(updatedTodos);
 
         //update task in db
         editTaskOnDB({id: taskID}, {content: updatedContent}).then(() => {
-            const updatedTodos = todos.map(todo => {
-                if(todo.id === taskID){
-                    return {...todo, content: updatedContent};
-                }
 
-                return todo;
-            })
-
-            setTodos(updatedTodos);
             socketRef.current.emit('editTask', {id: taskID, newContent: updatedContent});
         }).catch(() => {
             setAlertMessage("Failed to update task on server");
+
+            //revert task to old content
+            const updatedTodos = [...todos];
+            updatedTodos[index].content = contentBackup;
+            setTodos(updatedTodos);
         });
     };
 
@@ -203,19 +225,26 @@ function App() {
     };
 
     const toggleDone = (taskID) => {
-        const indexOfTask = todos.findIndex(todo => todo.id === taskID);
-        const newDoneValue = !todos[indexOfTask].done;
-        editTaskOnDB({id: taskID}, {done: newDoneValue}).then(() => {
-            //remove task from todos
-            const newTodos = [...todos];
-            newTodos[indexOfTask].done = newDoneValue;
+        const index = taskIDToIndex(taskID);
+        const newDoneValue = !todos[index].done;
 
-            setTodos(newTodos);
+        const newTodos = [...todos];
+        newTodos[index].done = newDoneValue;
+
+        setTodos(newTodos);
+
+        editTaskOnDB({id: taskID}, {done: newDoneValue}).then(() => {
 
             socketRef.current.emit('toggleDone', {id: taskID, done: newDoneValue});
         }).catch(() => {
             setAlertMessage("Failed to update task on server");
-        })
+
+            //restore old done value
+            const newTodos = [...todos];
+            newTodos[index].done = !newDoneValue;
+
+            setTodos(newTodos);
+        });
     };
 
     const handleTabChange = (event, index) => {
