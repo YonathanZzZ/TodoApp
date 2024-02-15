@@ -166,7 +166,8 @@ function App() {
         const todoBackup = todos[index];
 
         //remove task from client state
-        const newTodos = todos.splice(index, 1);
+        const newTodos = [...todos];
+        newTodos.splice(index, 1);
         setTodos(newTodos);
         //remove from db
         deleteTaskFromDB(taskID).then(() => {
