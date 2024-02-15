@@ -3,9 +3,10 @@ import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DoneIcon from '@mui/icons-material/Done';
+import RemoveDoneIcon from "@mui/icons-material/RemoveDone";
 import React from "react";
 
-export const TodoItem = ({id, entry, remove, startEditing, markAsDone}) => {
+export const TodoItem = ({id, entry, remove, startEditing, toggleDone, isDone}) => {
 
     return (
         <>
@@ -14,10 +15,10 @@ export const TodoItem = ({id, entry, remove, startEditing, markAsDone}) => {
                 size="small"
                 color="primary"
                 onClick={() => {
-                    markAsDone(id);
+                    toggleDone(id);
                 }}
             >
-                <DoneIcon/>
+                {isDone ? <DoneIcon/> : <RemoveDoneIcon/>}
             </IconButton>
 
             <ListItemText

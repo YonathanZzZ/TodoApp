@@ -2,7 +2,6 @@ import "./App.css";
 import {useEffect, useRef, useState} from "react";
 import TodoInput from "./TodoInput";
 import TodoList from "./TodoList";
-import DoneList from "./DoneList";
 import DisplayAlert from "./DisplayAlert";
 import {AppBar, Box, Container, Paper, Tab, Tabs, ThemeProvider, Toolbar, Typography} from "@mui/material";
 import {theme} from "./theme";
@@ -279,8 +278,11 @@ function App() {
                             <div className="list-container">
                                 {tabIndex === 0 && <TodoList todos={todos.filter(todo => !todo.done)} remove={deleteTodo}
                                                              edit={(taskID, text) => editContent(taskID, text)}
-                                                             markAsDone={toggleDone}/>}
-                                {tabIndex === 1 && <DoneList todos={todos.filter(todo => todo.done)} remove={deleteTodo}/>}
+                                                             toggleDone={toggleDone} isDone={true}/>}
+
+                                {tabIndex === 1 && <TodoList todos={todos.filter(todo => todo.done)} remove={deleteTodo}
+                                                             edit={(taskID, text) => editContent(taskID, text)}
+                                                             toggleDone={toggleDone} isDone={false}/>}
                             </div>
 
                         </>

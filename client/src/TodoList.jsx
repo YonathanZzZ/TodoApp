@@ -4,7 +4,7 @@ import Divider from '@mui/material/Divider';
 import {EditedItem} from "./EditedItem";
 import {TodoItem} from "./TodoItem";
 
-const TodoList = ({todos, remove, edit, markAsDone}) => {
+const TodoList = ({todos, remove, edit, toggleDone, isDone}) => {
     const [editingTaskID, setEditingTaskID] = useState(null);
     const [editedText, setEditedText] = useState('');
 
@@ -37,7 +37,7 @@ const TodoList = ({todos, remove, edit, markAsDone}) => {
                         ) : (
                             <TodoItem id={entry.id} entry={entry.content} remove={remove}
                                       startEditing={startEditing}
-                                      markAsDone={markAsDone}/>
+                                      toggleDone={toggleDone} isDone={isDone}/>
                         )}
                     </ListItem>
                     {/*add divider to list items except the last one*/}

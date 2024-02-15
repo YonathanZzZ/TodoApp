@@ -1,5 +1,6 @@
 const Sequelize = require("sequelize");
 const {DataTypes} = require("sequelize");
+const {reject} = require("bcrypt/promises");
 const HASH_LENGTH = 60;
 const sequelize = new Sequelize(
     process.env.DB_DATABASE,
@@ -89,13 +90,25 @@ const updateTaskGeneric = (taskIdentifier, newTaskData) => {
 };
 
 const getUserTasks = (email) => {
-    return Task.findAll({
-        attributes: ['id', 'content', 'done'],
-        where: {
-            email: email
-        },
-        raw: true
-    });
+
+    return new Promise((resolve, reject) => {
+        User.findOne({
+            where: {
+                email: email
+            },
+            include: {
+                model: Task,
+                attributes: ['id', 'content', 'done']
+            }
+        }).then(user => {
+            const userTasks = user.tasks.map(task => task.get({plain: true}));
+
+            resolve(userTasks);
+
+        }).catch(error => {
+            reject('internal server error', error);
+        });
+    })
 };
 
 const addUser = (email, password) => {
