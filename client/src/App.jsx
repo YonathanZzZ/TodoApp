@@ -124,8 +124,6 @@ function App() {
         return () => {
             socketRef.current.removeAllListeners();
         }
-
-
     }, [email]);
 
     const closeAlert = () => {
@@ -189,8 +187,6 @@ function App() {
 
             //delete task that failed to upload to database
             deleteTodoFromState(taskID);
-            // const newTodos = todos.filter(todo => todo.id !== taskID);
-            // setTodos(newTodos);
         });
     };
 
@@ -211,9 +207,6 @@ function App() {
 
             //restore task
             addTodoToState(todoBackup);
-
-            // const newTodos = [...todos, todoBackup];
-            // setTodos(newTodos);
         });
     };
 
