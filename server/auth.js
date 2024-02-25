@@ -3,7 +3,6 @@ const cookieParser = require('cookie-parser');
 const authenticateToken = (req, res, next) => {
     cookieParser()(req, res, () => {});
     const token = req.cookies.token;
-
     if(!token){
         res.status(401).send('Unauthorized: missing token');
         return;

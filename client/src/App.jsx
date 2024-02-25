@@ -33,7 +33,7 @@ function App() {
             const emailFromToken = decodedToken.email;
 
             setEmail(emailFromToken);
-        }
+        }, []
     );
 
     useEffect(() => {

@@ -14,21 +14,23 @@ export const LoginPage = ({setEmail, setPassword}) => {
 
     const loginUser = () => {
         validateUser(emailInput, passwordInput).then((res)=>{
-            setEmail(emailInput);
-            setPassword(passwordInput);
-            console.log('in login handler');
 
             //extract jwt from response
             const token = res.data.token;
+            console.log('received token from server: ', token);
             //store jwt as cookie
             Cookies.set('token', token, {
                 expires: 7,
                 path: '/',
-                sameSite: 'none'
+                sameSite: 'none',
+                secure: true
             });
 
+            setEmail(emailInput);
+            setPassword(passwordInput);
+
         }).catch((error)=>{
-            console.error('user unauthorized');
+            console.error('user unauthorized: ', error);
         });
     }
     const handleLoginButton = () =>{
