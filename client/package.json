@@ -11,6 +11,7 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "@vitejs/plugin-react": "^4.2.1",
     "axios": "^1.6.5",
     "dexie": "^3.2.4",
     "dexie-react-hooks": "^1.1.7",
@@ -23,9 +24,8 @@
     "socket.io-client": "^4.7.4",
     "uuid": "^9.0.1",
     "validator": "^13.11.0",
-    "web-vitals": "^2.1.4",
-    "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.1.1"
+    "vite": "^5.1.4",
+    "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "vite",

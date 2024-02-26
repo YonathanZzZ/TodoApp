@@ -237,11 +237,10 @@ function App() {
     };
 
     const toggleDone = (taskID) => {
-        const doneValue = todos.map(todo => {
-            if(todo.id === taskID){
-                return todo.done;
-            }
-        });
+        const task = todos.find(todo => todo.id === taskID);
+        const doneValue = task.done;
+
+        console.log('done value before toggle: ', doneValue);
 
         toggleDoneOnState(taskID);
 
