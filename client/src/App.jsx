@@ -274,7 +274,7 @@ function App() {
     };
 
     return (<ThemeProvider theme={theme}>
-            <Container maxWidth="lg">
+            <Container maxWidth="80%">
                 <Paper elevation={24} style={{padding: 15, marginTop: 5, marginBottom: 20, textAlign: "center"}}>
 
                     {email ? (

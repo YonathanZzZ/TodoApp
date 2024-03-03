@@ -1,6 +1,5 @@
 const Sequelize = require("sequelize");
 const {DataTypes} = require("sequelize");
-const {reject} = require("bcrypt/promises");
 const HASH_LENGTH = 60;
 const sequelize = new Sequelize(
     process.env.DB_DATABASE,

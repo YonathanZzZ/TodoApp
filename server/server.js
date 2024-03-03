@@ -2,23 +2,18 @@ require('dotenv').config(); //load environment variables defined in .env file
 const express = require('express');
 const app = express();
 const bcrypt = require('bcrypt');
-const HTTPS_PORT = 443;
-const HTTP_PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 80;
 const saltRounds = 10;
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const auth = require('./auth');
 const dbHandler = require('./dbHandler');
-const https = require('https');
+//const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const initializeSocket = require('./socketHandler');
 const httpServer = http.createServer(app);
-
-if(process.env.NODE_ENV !== 'production'){
-
-}
 
 app.use(express.static(path.join(__dirname, '../client/build')));
 app.use(express.json());
@@ -129,36 +124,41 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
 
-if(process.env.NODE_ENV !== 'production'){
-    console.log('!production'); //true when running locally
-    app.use((req, res, next) => {
-        if(!req.secure){
-            return res.redirect('https://' + req.headers.host + req.url);
-        }
-        next();
-    })
+// if(process.env.NODE_ENV !== 'production'){
+//     console.log('!production'); //true when running locally
+//     app.use((req, res, next) => {
+//         if(!req.secure){
+//             return res.redirect('https://' + req.headers.host + req.url);
+//         }
+//         next();
+//     })
+//
+//     const httpOptions = {
+//         key: fs.readFileSync('server/localhost-key.pem'),
+//         cert: fs.readFileSync('server/localhost.pem')
+//     };
+//
+//     console.log('creating https server');
+//
+//     const httpsServer = https.createServer(httpOptions,app);
+//
+//     initializeSocket(httpsServer);
+//
+//     httpsServer.listen(HTTPS_PORT, () => {
+//         console.log('https server is running on port', HTTPS_PORT);
+//     });
+// }else{
+//     initializeSocket(httpServer);
+//
+//     httpServer.listen(HTTP_PORT, () => {
+//         console.log('http server is running on port', HTTP_PORT);
+//     });
+// }
 
-    const httpOptions = {
-        key: fs.readFileSync('server/localhost-key.pem'),
-        cert: fs.readFileSync('server/localhost.pem')
-    };
-
-    console.log('creating https server');
-
-    const httpsServer = https.createServer(httpOptions,app);
-
-    initializeSocket(httpsServer);
-
-    httpsServer.listen(HTTPS_PORT, () => {
-        console.log('https server is running on port', HTTPS_PORT);
-    });
-}else{
+app.listen(PORT, () => {
+    console.log('server is running on port: ', PORT);
     initializeSocket(httpServer);
-
-    httpServer.listen(HTTP_PORT, () => {
-        console.log('http server is running on port', HTTP_PORT);
-    });
-}
+})
 
 
 
