@@ -20,7 +20,8 @@ function App() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [tabIndex, setTabIndex] = useState(0);
-    const URL = window.location.origin; // use the domain that served the client
+    const serverURL = import.meta.env.DEV ? 'http://localhost:8080' : window.location.origin;
+    console.log('serverURL: ', serverURL);
     const socketRef = useRef(null);
 
     useEffect(() => {
@@ -56,7 +57,7 @@ function App() {
 
         //socket setup
         if (!socketRef.current) {
-            const socket = io(URL, {
+            const socket = io(serverURL, {
                 autoConnect: false
             });
 
@@ -71,12 +72,10 @@ function App() {
             };
 
             const onTaskAdded = (newTask) => {
-
                 setTodos(prevTodos => [...prevTodos, newTask]);
             };
 
             const onTaskRemoved = (taskID) => {
-
                 setTodos((prevTodos) => {
                     return prevTodos.filter(item => item.id !== taskID)
                 });

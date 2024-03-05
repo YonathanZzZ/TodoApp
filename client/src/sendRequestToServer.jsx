@@ -1,44 +1,46 @@
 import axios from 'axios';
 
-axios.defaults.withCredentials = true;
+axios.defaults.withCredentials = true; //include cookies in requests automatically
+
+const serverURL = import.meta.env.DEV ? 'http://localhost:8080' : '';
 
 export const getTasksFromDB = (email) => {
-    return axios.get(`/tasks/${email}`);
+    return axios.get(`${serverURL}/tasks/${email}`);
 };
 
 export const addTaskToDB = (task) => {
 
-    return axios.post(`/tasks`, task);
+    return axios.post(`${serverURL}/tasks`, task);
 };
 
 export const deleteTaskFromDB = (taskID) => {
 
-    return axios.delete(`/tasks/${taskID}`);
+    return axios.delete(`${serverURL}/tasks/${taskID}`);
 };
 
 export const editTaskOnDB = (identifier, newData) => {
 
-    return axios.patch(`/tasks`, {
+    return axios.patch(`${serverURL}/tasks`, {
         taskIdentifier: identifier, newTaskData: newData
     });
 };
 
 export const addUser = (email, password) => {
-    return axios.post(`/register`, {
+    return axios.post(`${serverURL}/register`, {
         email: email,
         password: password
     });
 };
 
 export const validateUser = (email, password) => {
-    return axios.post(`/login`, {
+    return axios.post(`${serverURL}/login`, {
         email: email,
         password: password
     });
 };
 
 export const deleteUserFromDB = (email) => {
-    return axios.delete(`/users/${email}`);
+    return axios.delete(`${serverURL}/users/${email}`);
 };
 
 

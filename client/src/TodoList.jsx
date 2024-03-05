@@ -28,7 +28,6 @@ const TodoList = ({todos, remove, edit, toggleDone, isDone}) => {
     return (
         <List>
             {todos.map((entry, index) => (
-                //use <> (fragment) to return multiple elements (list item and divider)
                 <>
                     <ListItem key={entry.id}>
                         {editingTaskID === entry.id ? (

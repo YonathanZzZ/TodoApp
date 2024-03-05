@@ -1,7 +1,14 @@
 const { Server } = require('socket.io');
 
-function initializeSocket(httpServer) {
-    const io = new Server(httpServer);
+
+const initializeSocket = (httpServer) => {
+
+    const io = !process.env.NODE_ENV || process.env.NODE_ENV === 'development' ? new Server(httpServer, {
+        cors: {
+            origin: 'http://localhost:5173',
+            credentials: true,
+        }
+    }) : new Server(httpServer);
 
     io.on('connection', (socket) => {
         console.log('a user connected with socket id:', socket.id);

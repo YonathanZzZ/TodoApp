@@ -2,22 +2,29 @@ require('dotenv').config(); //load environment variables defined in .env file
 const express = require('express');
 const app = express();
 const bcrypt = require('bcrypt');
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 8080;
 const saltRounds = 10;
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const auth = require('./auth');
 const dbHandler = require('./dbHandler');
-//const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const initializeSocket = require('./socketHandler');
 const httpServer = http.createServer(app);
+const cors = require('cors');
 
-app.use(express.static(path.join(__dirname, '../client/build')));
 app.use(express.json());
 app.use(cookieParser());
+
+if(!process.env.NODE_ENV || process.env.NODE_ENV === 'development'){
+    console.log('server running in development environment');
+    app.use(cors({
+        origin: 'http://localhost:5173',
+        credentials: true,
+    }));
+}
 
 app.post('/tasks', auth.authenticateToken, (req, res) => {
     const task = req.body;
@@ -119,45 +126,10 @@ app.post('/login', async (req, res) => {
     }
 });
 
-app.get('*', (req, res) => {
-    //redirect all other routes to landing page
-    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
-});
+initializeSocket(httpServer);
 
-// if(process.env.NODE_ENV !== 'production'){
-//     console.log('!production'); //true when running locally
-//     app.use((req, res, next) => {
-//         if(!req.secure){
-//             return res.redirect('https://' + req.headers.host + req.url);
-//         }
-//         next();
-//     })
-//
-//     const httpOptions = {
-//         key: fs.readFileSync('server/localhost-key.pem'),
-//         cert: fs.readFileSync('server/localhost.pem')
-//     };
-//
-//     console.log('creating https server');
-//
-//     const httpsServer = https.createServer(httpOptions,app);
-//
-//     initializeSocket(httpsServer);
-//
-//     httpsServer.listen(HTTPS_PORT, () => {
-//         console.log('https server is running on port', HTTPS_PORT);
-//     });
-// }else{
-//     initializeSocket(httpServer);
-//
-//     httpServer.listen(HTTP_PORT, () => {
-//         console.log('http server is running on port', HTTP_PORT);
-//     });
-// }
-
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log('server is running on port: ', PORT);
-    initializeSocket(httpServer);
 })
 
 
