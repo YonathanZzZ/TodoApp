@@ -14,9 +14,11 @@ const path = require('path');
 const initializeSocket = require('./socketHandler');
 const httpServer = http.createServer(app);
 const cors = require('cors');
+const BUILD_PATH = "../client/build/";
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(express.static(path.join(__dirname, BUILD_PATH)));
 
 if(!process.env.NODE_ENV || process.env.NODE_ENV === 'development'){
     console.log('server running in development environment');
@@ -136,6 +138,10 @@ app.post('/verify', (req, res) => {
         res.status(200).json('Token verified');
     }
 });
+
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, BUILD_PATH + "index.html"));
+})
 
 initializeSocket(httpServer);
 
