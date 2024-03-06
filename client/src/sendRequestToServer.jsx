@@ -39,6 +39,13 @@ export const validateUser = (email, password) => {
     });
 };
 
+export const verifyToken = (token) => {
+    console.log('token in verifyToken: ', token);
+    return axios.post(`${serverURL}/verify`, {
+        token: token,
+    });
+};
+
 export const deleteUserFromDB = (email) => {
     return axios.delete(`${serverURL}/users/${email}`);
 };

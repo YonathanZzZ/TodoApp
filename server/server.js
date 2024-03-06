@@ -118,11 +118,22 @@ app.post('/login', async (req, res) => {
     const passwordMatch = await bcrypt.compare(password, hashedPassword);
     if (passwordMatch) {
         //generate JWT
-        const token = jwt.sign({email: email}, process.env.JWT_SECRET_KEY, {expiresIn: '7d'});
+        const token = jwt.sign({email: email}, process.env.JWT_SECRET_KEY, {expiresIn: '60000'});
 
         res.status(200).json({token: token});
     } else {
         res.status(401).json('Invalid credentials');
+    }
+});
+
+app.post('/verify', (req, res) => {
+    const token = req.body.token;
+    console.log('token in verify post: ', token);
+    const user = auth.verifyToken(token);
+    if(!user){
+        res.status(403).json('Forbidden: invalid token');
+    }else{
+        res.status(200).json('Token verified');
     }
 });
 

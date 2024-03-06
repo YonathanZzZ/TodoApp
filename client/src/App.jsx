@@ -5,7 +5,7 @@ import TodoList from "./TodoList";
 import DisplayAlert from "./DisplayAlert";
 import {AppBar, Box, Container, Paper, Tab, Tabs, ThemeProvider, Toolbar, Typography} from "@mui/material";
 import {theme} from "./theme";
-import {addTaskToDB, deleteTaskFromDB, editTaskOnDB, getTasksFromDB, deleteUserFromDB} from './sendRequestToServer';
+import {addTaskToDB, deleteTaskFromDB, editTaskOnDB, getTasksFromDB, deleteUserFromDB, verifyToken} from './sendRequestToServer';
 import {LoginPage} from "./LoginPage";
 import Cookies from "js-cookie";
 import {jwtDecode} from "jwt-decode";
@@ -29,11 +29,14 @@ function App() {
             if (!token) {
                 return;
             }
-
-            const decodedToken = jwtDecode(token);
-            const emailFromToken = decodedToken.email;
-
-            setEmail(emailFromToken);
+            verifyToken(token).then(() => {
+                console.log('token verified');
+                const decodedToken = jwtDecode(token);
+                const emailFromToken = decodedToken.email;
+                setEmail(emailFromToken);
+            }).catch(() => {
+                //token verification failed
+            });
         }, []
     );
 
