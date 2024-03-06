@@ -118,7 +118,7 @@ app.post('/login', async (req, res) => {
     const passwordMatch = await bcrypt.compare(password, hashedPassword);
     if (passwordMatch) {
         //generate JWT
-        const token = jwt.sign({email: email}, process.env.JWT_SECRET_KEY, {expiresIn: '60000'});
+        const token = jwt.sign({email: email}, process.env.JWT_SECRET_KEY, {expiresIn: '7d'});
 
         res.status(200).json({token: token});
     } else {

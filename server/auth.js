@@ -26,16 +26,6 @@ const authenticateToken = (req, res, next) => {
         req.user = user;
         next();
     }
-
-    // jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
-    //     if(err){
-    //         res.status(403).send('Forbidden: invalid token');
-    //         return;
-    //     }
-    //
-    //     req.user = user;
-    //     next();
-    // });
 };
 
 module.exports = {authenticateToken, verifyToken};
