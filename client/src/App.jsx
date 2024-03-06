@@ -21,7 +21,6 @@ function App() {
     const [password, setPassword] = useState("");
     const [tabIndex, setTabIndex] = useState(0);
     const serverURL = import.meta.env.DEV ? 'http://localhost:8080' : window.location.origin;
-    console.log('serverURL: ', serverURL);
     const socketRef = useRef(null);
 
     useEffect(() => {
@@ -241,9 +240,7 @@ function App() {
     const toggleDone = (taskID) => {
         const task = todos.find(todo => todo.id === taskID);
         const doneValue = task.done;
-
-        console.log('done value before toggle: ', doneValue);
-
+        
         toggleDoneOnState(taskID);
 
         editTaskOnDB({id: taskID}, {done: !doneValue}).then(() => {
