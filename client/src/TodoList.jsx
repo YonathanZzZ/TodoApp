@@ -28,21 +28,20 @@ const TodoList = ({todos, remove, edit, toggleDone, isDone}) => {
     return (
         <List>
             {todos.map((entry, index) => (
-                <>
-                    <ListItem key={entry.id}>
+                <React.Fragment key={entry.id}>
+                    <ListItem >
                         {editingTaskID === entry.id ? (
                             <EditedItem taskID={entry.id} editedText={editedText} setEditedText={setEditedText}
                                         saveEditing={saveEditing} cancelEditing={cancelEditing}/>
                         ) : (
-                            <TodoItem id={entry.id} entry={entry.content} remove={remove}
+                            <TodoItem id={entry.id} content={entry.content} remove={remove}
                                       startEditing={startEditing}
                                       toggleDone={toggleDone} isDone={isDone}/>
                         )}
                     </ListItem>
                     {/*add divider to list items except the last one*/}
                     {index !== todos.length - 1 && <Divider component="li"/>}
-                </>
-
+                </React.Fragment>
             ))}
         </List>
     );

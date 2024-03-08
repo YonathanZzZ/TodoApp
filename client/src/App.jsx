@@ -5,7 +5,14 @@ import TodoList from "./TodoList";
 import DisplayAlert from "./DisplayAlert";
 import {AppBar, Box, Container, Paper, Tab, Tabs, ThemeProvider, Toolbar, Typography} from "@mui/material";
 import {theme} from "./theme";
-import {addTaskToDB, deleteTaskFromDB, editTaskOnDB, getTasksFromDB, deleteUserFromDB, verifyToken} from './sendRequestToServer';
+import {
+    addTaskToDB,
+    deleteTaskFromDB,
+    editTaskOnDB,
+    getTasksFromDB,
+    deleteUserFromDB,
+    verifyToken
+} from './sendRequestToServer';
 import {LoginPage} from "./LoginPage";
 import Cookies from "js-cookie";
 import {jwtDecode} from "jwt-decode";
@@ -29,7 +36,6 @@ function App() {
                 return;
             }
             verifyToken(token).then(() => {
-                console.log('token verified');
                 const decodedToken = jwtDecode(token);
                 const emailFromToken = decodedToken.email;
                 setEmail(emailFromToken);
@@ -44,7 +50,6 @@ function App() {
             return;
         }
 
-        //load tasks from database
         getTasksFromDB(email).then(res => {
             setTodos(res.data);
         }).catch(() => {
@@ -136,14 +141,14 @@ function App() {
         setTodos(newTodos);
     }
 
-    const deleteTodoFromState = (taskID) =>{
+    const deleteTodoFromState = (taskID) => {
         const newTodos = todos.filter(todo => todo.id !== taskID);
         setTodos(newTodos);
     }
 
     const editTodoOnState = (taskID, updatedContent) => {
         const newTodos = todos.map(todo => {
-            if(todo.id === taskID){
+            if (todo.id === taskID) {
                 return {...todo, content: updatedContent};
             }
 
@@ -155,7 +160,7 @@ function App() {
 
     const toggleDoneOnState = (taskID) => {
         const newTodos = todos.map(todo => {
-            if(todo.id === taskID){
+            if (todo.id === taskID) {
                 return {...todo, done: !todo.done};
             }
 
@@ -175,11 +180,10 @@ function App() {
         const newTodo = {id: taskID, content: todo, done: false};
         addTodoToState(newTodo);
 
-        //clear input field
         setTodo("");
         //add to database (combine email with newTodo into a single json)
-        addTaskToDB({...newTodo, email: email}).then(() => {
-
+        //addTaskToDB({...newTodo, email: email}).then(() => {
+        addTaskToDB(newTodo).then(() => {
             //emit event to socket to update other clients of the same user
             socketRef.current.emit('addTask', newTodo);
         }).catch((error) => {
@@ -218,7 +222,7 @@ function App() {
     const editContent = (taskID, updatedContent) => {
         //const contentBackup = todos[index].content;
         const contentBackup = todos.map(todo => {
-            if(todo.id === taskID){
+            if (todo.id === taskID) {
                 return todo.content;
             }
         });
@@ -240,7 +244,7 @@ function App() {
     const toggleDone = (taskID) => {
         const task = todos.find(todo => todo.id === taskID);
         const doneValue = task.done;
-        
+
         toggleDoneOnState(taskID);
 
         editTaskOnDB({id: taskID}, {done: !doneValue}).then(() => {
@@ -261,7 +265,7 @@ function App() {
 
     const deleteAccount = () => {
         //request server to delete user, then logout
-        deleteUserFromDB(email).then(() => {
+        deleteUserFromDB().then(() => {
             logOut();
         }).catch(() => {
             setAlertMessage("Failed to delete account");
@@ -273,50 +277,47 @@ function App() {
     };
 
     return (<ThemeProvider theme={theme}>
-            <Container maxWidth="100%" >
-                <Paper elevation={24} style={{padding: 15, marginTop: 5, marginBottom: 20, textAlign: "center", }}>
+            <Container maxWidth="sm" style={{padding: 5}}>
+                {email ? (
+                    <>
+                        <AppBar position="sticky">
+                            <Toolbar>
+                                <Typography variant="h5" component="div" sx={{flexGrow: 1, textAlign: 'center'}}>
+                                    ToDo List
+                                </Typography>
+                                <AccountMenu logout={logOut} deleteAccount={deleteAccount}/>
+                            </Toolbar>
+                        </AppBar>
 
-                    {email ? (
-                        <>
-                            <AppBar position="static">
-                                <Toolbar>
-                                    <Typography variant="h5" component="div" sx={{flexGrow: 1, textAlign: 'center'}}>
-                                        ToDo List
-                                    </Typography>
-                                    <AccountMenu logout={logOut} deleteAccount={deleteAccount}/>
-                                </Toolbar>
-                            </AppBar>
+                        <Box mt={1}>
+                            <TodoInput todo={todo} setTodo={setTodo} addTodo={addTodo}/>
+                        </Box>
+                        {alertMessage && <DisplayAlert message={alertMessage} onClose={closeAlert}/>}
 
-                            <Box mt={1}>
-                                <TodoInput todo={todo} setTodo={setTodo} addTodo={addTodo}/>
-                            </Box>
-                            {alertMessage && <DisplayAlert message={alertMessage} onClose={closeAlert}/>}
+                        <Box className="tabs-box">
+                            <Tabs value={tabIndex} onChange={handleTabChange}>
+                                <Tab label="Todo"/>
+                                <Tab label="Done"/>
+                            </Tabs>
+                        </Box>
 
-                            <Box className="tabs-box">
-                                <Tabs value={tabIndex} onChange={handleTabChange}>
-                                    <Tab label="Todo"/>
-                                    <Tab label="Done"/>
-                                </Tabs>
-                            </Box>
+                        <div className="list-container">
+                            {tabIndex === 0 && <TodoList todos={todos.filter(todo => !todo.done)} remove={deleteTodo}
+                                                         edit={(taskID, text) => editContent(taskID, text)}
+                                                         toggleDone={toggleDone} isDone={true}/>}
 
-                            <div className="list-container">
-                                {tabIndex === 0 && <TodoList todos={todos.filter(todo => !todo.done)} remove={deleteTodo}
-                                                             edit={(taskID, text) => editContent(taskID, text)}
-                                                             toggleDone={toggleDone} isDone={true}/>}
+                            {tabIndex === 1 && <TodoList todos={todos.filter(todo => todo.done)} remove={deleteTodo}
+                                                         edit={(taskID, text) => editContent(taskID, text)}
+                                                         toggleDone={toggleDone} isDone={false}/>}
+                        </div>
 
-                                {tabIndex === 1 && <TodoList todos={todos.filter(todo => todo.done)} remove={deleteTodo}
-                                                             edit={(taskID, text) => editContent(taskID, text)}
-                                                             toggleDone={toggleDone} isDone={false}/>}
-                            </div>
-
-                        </>
-                    ) : (
-                        <>
-                            <h1>Login</h1>
-                            <LoginPage setEmail={setEmail} setPassword={setPassword} password={password}/>
-                        </>
-                    )}
-                </Paper>
+                    </>
+                ) : (
+                    <>
+                        <h1>Login</h1>
+                        <LoginPage setEmail={setEmail} setPassword={setPassword} password={password}/>
+                    </>
+                )}
             </Container>
         </ThemeProvider>
     );

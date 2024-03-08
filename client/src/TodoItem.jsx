@@ -6,7 +6,7 @@ import DoneIcon from '@mui/icons-material/Done';
 import RemoveDoneIcon from "@mui/icons-material/RemoveDone";
 import React from "react";
 
-export const TodoItem = ({id, entry, remove, startEditing, toggleDone, isDone}) => {
+export const TodoItem = ({id, content, remove, startEditing, toggleDone, isDone}) => {
 
     return (
         <>
@@ -22,7 +22,7 @@ export const TodoItem = ({id, entry, remove, startEditing, toggleDone, isDone}) 
             </IconButton>
 
             <ListItemText
-                primary={entry}
+                primary={content}
                 primaryTypographyProps={{
                     component: 'div',
                     style: {
@@ -37,7 +37,7 @@ export const TodoItem = ({id, entry, remove, startEditing, toggleDone, isDone}) 
                 size="small"
                 color="primary"
                 onClick={() => {
-                    startEditing(id, entry);
+                    startEditing(id, content);
                 }}
             >
                 <EditIcon/>
