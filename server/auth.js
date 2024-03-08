@@ -3,7 +3,7 @@ const cookieParser = require('cookie-parser');
 
 const verifyToken = (token) => {
     return jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
-        if(err){
+        if (err) {
             return null;
         }
 
@@ -12,19 +12,19 @@ const verifyToken = (token) => {
 }
 
 const authenticateToken = (req, res, next) => {
-    cookieParser()(req, res, () => {});
+    cookieParser()(req, res, () => {
+    });
     const token = req.cookies.token;
-    if(!token){
+    if (!token) {
         res.status(401).json('Unauthorized: missing token');
-        return;
-    }
-
-    const user = verifyToken(token);
-    if(!user){
-        res.status(403).json('Forbidden: invalid token');
-    }else{
-        req.user = user;
-        next();
+    } else {
+        const user = verifyToken(token);
+        if (!user) {
+            res.status(403).json('Forbidden: invalid token');
+        } else {
+            req.body.email = user.email;
+            next();
+        }
     }
 };
 

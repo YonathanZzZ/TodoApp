@@ -94,8 +94,8 @@ app.post('/register', async (req, res) => {
     });
 });
 
-app.delete('/users/:email', auth.authenticateToken, (req, res) => {
-    const emailToDelete = req.params.email;
+app.delete('/users', auth.authenticateToken, (req, res) => {
+    const emailToDelete = req.body.email;
 
     //delete user and their tasks from db
     dbHandler.deleteUser(emailToDelete).then(() => {
