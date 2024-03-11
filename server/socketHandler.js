@@ -1,6 +1,5 @@
 const { Server } = require('socket.io');
 
-
 const initializeSocket = (httpServer) => {
 
     const io = !process.env.NODE_ENV || process.env.NODE_ENV === 'development' ? new Server(httpServer, {
@@ -11,19 +10,10 @@ const initializeSocket = (httpServer) => {
     }) : new Server(httpServer);
 
     io.on('connection', (socket) => {
-        console.log('a user connected with socket id:', socket.id);
 
-        let userEmail;
-
-        socket.on('email', (email) => {
-            console.log('email received from client: ', email);
-
-            //store socket in room named after the user's email
-            socket.join(email);
-
-            //initialize email variable
-            userEmail = email;
-        });
+        let userEmail = socket.handshake.query.email;
+        console.log('a user connected with email:', userEmail);
+        socket.join(userEmail);
 
         socket.on('addTask', (newTask) => {
             console.log('received new task from socket: ', newTask);
