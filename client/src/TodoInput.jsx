@@ -6,7 +6,7 @@ const TodoInput = ({todo, setTodo, addTodo}) => {
 
     //use Enter keypress to submit input
     const keyDownHandler = (e) => {
-        if (e.code === "Enter") {
+        if (e.key === "Enter") {
             addTodo();
         }
     }
