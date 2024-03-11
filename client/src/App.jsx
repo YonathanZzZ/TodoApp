@@ -3,14 +3,14 @@ import {useEffect, useRef, useState} from "react";
 import TodoInput from "./TodoInput";
 import TodoList from "./TodoList";
 import DisplayAlert from "./DisplayAlert";
-import {AppBar, Box, Container, Paper, Tab, Tabs, ThemeProvider, Toolbar, Typography} from "@mui/material";
+import {AppBar, Box, Container, CssBaseline, Paper, Tab, Tabs, ThemeProvider, Toolbar, Typography} from "@mui/material";
 import {theme} from "./theme";
 import {
     addTaskToDB,
     deleteTaskFromDB,
+    deleteUserFromDB,
     editTaskOnDB,
     getTasksFromDB,
-    deleteUserFromDB,
     verifyToken
 } from './sendRequestToServer';
 import {LoginPage} from "./LoginPage";
@@ -65,18 +65,13 @@ function App() {
         //socket setup
         if (!socketRef.current) {
             const socket = io(serverURL, {
-                autoConnect: false
+                autoConnect: false,
+                query: {
+                    email: email
+                }
             });
 
             socketRef.current = socket;
-
-            const onConnect = () => {
-                socket.emit('email', email);
-            };
-
-            const onDisconnect = () => {
-
-            };
 
             const onTaskAdded = (newTask) => {
                 setTodos(prevTodos => [...prevTodos, newTask]);
@@ -117,8 +112,6 @@ function App() {
             }
 
             //add event listeners
-            socket.on('connect', onConnect);
-            socket.on('disconnect', onDisconnect);
             socket.on('addTask', onTaskAdded);
             socket.on('deleteTask', onTaskRemoved);
             socket.on('editTask', onTaskEdited);
@@ -264,7 +257,6 @@ function App() {
     };
 
     const deleteAccount = () => {
-        //request server to delete user, then logout
         deleteUserFromDB().then(() => {
             logOut();
         }).catch(() => {
@@ -276,48 +268,60 @@ function App() {
         setTabIndex(index);
     };
 
-    return (<ThemeProvider theme={theme}>
-            <Container maxWidth="sm" style={{padding: 5}}>
-                {email ? (
-                    <>
-                        <AppBar position="sticky">
-                            <Toolbar>
-                                <Typography variant="h5" component="div" sx={{flexGrow: 1, textAlign: 'center'}}>
-                                    ToDo List
-                                </Typography>
-                                <AccountMenu logout={logOut} deleteAccount={deleteAccount}/>
-                            </Toolbar>
-                        </AppBar>
+    return (
+        <ThemeProvider theme={theme}>
+            <Container maxWidth="sm" sx={{ height: '100%', padding: 0}}>
+                <Paper  elevation={5} style={{height: '100vh', overflow: 'auto'}}>
+                    <Box>
+                        {email ? (
+                            <>
+                                <AppBar position="sticky">
+                                    <Toolbar>
+                                        <Typography variant="h5" sx={{ flexGrow: 1, textAlign: 'center' }}>
+                                            ToDo List
+                                        </Typography>
+                                        <AccountMenu logout={logOut} deleteAccount={deleteAccount} />
+                                    </Toolbar>
 
-                        <Box mt={1}>
-                            <TodoInput todo={todo} setTodo={setTodo} addTodo={addTodo}/>
-                        </Box>
-                        {alertMessage && <DisplayAlert message={alertMessage} onClose={closeAlert}/>}
-
-                        <Box className="tabs-box">
-                            <Tabs value={tabIndex} onChange={handleTabChange}>
-                                <Tab label="Todo"/>
-                                <Tab label="Done"/>
-                            </Tabs>
-                        </Box>
-
-                        <div className="list-container">
-                            {tabIndex === 0 && <TodoList todos={todos.filter(todo => !todo.done)} remove={deleteTodo}
-                                                         edit={(taskID, text) => editContent(taskID, text)}
-                                                         toggleDone={toggleDone} isDone={true}/>}
-
-                            {tabIndex === 1 && <TodoList todos={todos.filter(todo => todo.done)} remove={deleteTodo}
-                                                         edit={(taskID, text) => editContent(taskID, text)}
-                                                         toggleDone={toggleDone} isDone={false}/>}
-                        </div>
-
-                    </>
-                ) : (
-                    <>
-                        <h1>Login</h1>
-                        <LoginPage setEmail={setEmail} setPassword={setPassword} password={password}/>
-                    </>
-                )}
+                                    <Box style={{ background: 'white', padding: '6px' }}>
+                                        <TodoInput todo={todo} setTodo={setTodo} addTodo={addTodo} />
+                                        <Box className="tabs-box" >
+                                            <Tabs value={tabIndex} onChange={handleTabChange}>
+                                                <Tab label="Todo" />
+                                                <Tab label="Done" />
+                                            </Tabs>
+                                        </Box>
+                                        {alertMessage && <DisplayAlert message={alertMessage} onClose={closeAlert} />}
+                                    </Box>
+                                </AppBar>
+                                <Box sx={{padding: '0px'}}>
+                                    {tabIndex === 0 && (
+                                        <TodoList
+                                            todos={todos.filter((todo) => !todo.done)}
+                                            remove={deleteTodo}
+                                            edit={(taskID, text) => editContent(taskID, text)}
+                                            toggleDone={toggleDone}
+                                            isDone={true}
+                                        />
+                                    )}
+                                    {tabIndex === 1 && (
+                                        <TodoList
+                                            todos={todos.filter((todo) => todo.done)}
+                                            remove={deleteTodo}
+                                            edit={(taskID, text) => editContent(taskID, text)}
+                                            toggleDone={toggleDone}
+                                            isDone={false}
+                                        />
+                                    )}
+                                </Box>
+                            </>
+                        ) : (
+                            <>
+                                <LoginPage setEmail={setEmail} setPassword={setPassword} />
+                            </>
+                        )}
+                    </Box>
+                </Paper>
             </Container>
         </ThemeProvider>
     );
