@@ -1,5 +1,5 @@
 import Stack from "@mui/material/Stack";
-import {TextField} from "@mui/material";
+import {Box, TextField} from "@mui/material";
 import React, {useState} from "react";
 import Button from "@mui/material/Button";
 import {addUser, validateUser} from "./sendRequestToServer";
@@ -21,7 +21,7 @@ export const LoginPage = ({setEmail, setPassword}) => {
             Cookies.set('token', token, {
                 expires: 7,
                 path: '/',
-                sameSite: 'none',
+                sameSite: 'strict',
                 secure: true
             });
 
@@ -63,7 +63,10 @@ export const LoginPage = ({setEmail, setPassword}) => {
     };
 
     return (
-        <Stack direction="column" spacing={2}>
+        <Stack direction="column" spacing={1}>
+            <Box textAlign="center">
+                <h1>Please Login or Register</h1>
+            </Box>
             <TextField
                 id="email-field"
                 autoFocus={true}
@@ -92,12 +95,13 @@ export const LoginPage = ({setEmail, setPassword}) => {
                 }}
                 onKeyDown={handleKeyDown}
             />
-
-            <Stack direction="row" justifyContent="space-between">
-                <Button variant="contained" onClick={handleLoginButton}>Login</Button>
-                <Button variant="contained" onClick={handleRegisterButton}>Register</Button>
-            </Stack>
+            <Box style={{margin: '5px'}}>
+                <Stack direction="row" justifyContent="space-between">
+                    <Button variant="contained" onClick={handleLoginButton}>Login</Button>
+                    <Button variant="contained" onClick={handleRegisterButton}>Register</Button>
+                </Stack>
+            </Box>
         </Stack>
-    );
+);
 }
 
