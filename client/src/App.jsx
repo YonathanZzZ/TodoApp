@@ -1,10 +1,10 @@
 import "./App.css";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import TodoInput from "./TodoInput";
 import TodoList from "./TodoList";
 import DisplayAlert from "./DisplayAlert";
 import {AppBar, Box, Container, CssBaseline, Paper, Tab, Tabs, ThemeProvider, Toolbar, Typography} from "@mui/material";
-import {theme} from "./theme";
+import {getDesignTokens} from "./theme";
 import {
     addTaskToDB,
     deleteTaskFromDB,
@@ -19,6 +19,8 @@ import {jwtDecode} from "jwt-decode";
 import {AccountMenu} from './AccountMenu';
 import {v4 as uuidv4} from 'uuid';
 import {io} from 'socket.io-client';
+import {createTheme} from "@mui/material/styles";
+import {ThemeToggle} from "./ThemeToggle";
 
 function App() {
     const [todo, setTodo] = useState("");
@@ -28,7 +30,32 @@ function App() {
     const [password, setPassword] = useState("");
     const [tabIndex, setTabIndex] = useState(0);
     const serverURL = import.meta.env.DEV ? 'http://localhost:8080' : window.location.origin;
+    const [mode, setMode] = useState('light');
     const socketRef = useRef(null);
+
+    const theme = createTheme(getDesignTokens(mode));
+
+    useEffect(() => {
+        const userSetting = localStorage.getItem('mode');
+        if(userSetting){
+            setMode(userSetting);
+            return;
+        }
+
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleChange = (e) => {
+
+            setMode(e.matches ? 'dark' : 'light');
+        };
+
+        handleChange(mediaQuery);
+
+        mediaQuery.addEventListener('change', handleChange);
+
+        return () => {
+            mediaQuery.removeEventListener('change', handleChange);
+        };
+    }, []);
 
     useEffect(() => {
             const token = Cookies.get('token');
@@ -270,59 +297,62 @@ function App() {
 
     return (
         <ThemeProvider theme={theme}>
-            <Container maxWidth="sm" sx={{ height: '100%', padding: 0}}>
-                <Paper  elevation={5} style={{height: '100vh', overflow: 'auto'}}>
-                    <Box>
-                        {email ? (
-                            <>
-                                <AppBar position="sticky">
-                                    <Toolbar>
-                                        <Typography variant="h5" sx={{ flexGrow: 1, textAlign: 'center' }}>
-                                            ToDo List
-                                        </Typography>
-                                        <AccountMenu logout={logOut} deleteAccount={deleteAccount} />
-                                    </Toolbar>
+            <Box style={{backgroundColor: theme.palette.background.main}}>
+                <Container maxWidth="sm" sx={{ height: '100%', padding: 0}}>
+                    <Paper  elevation={5} style={{height: '100vh', overflow: 'auto'}}>
+                        <Box>
+                            {email ? (
+                                <>
+                                    <AppBar position="sticky">
+                                        <Toolbar>
+                                            <ThemeToggle mode={mode} setMode={setMode}/>
+                                            <Typography variant="h5" sx={{ flexGrow: 1, textAlign: 'center' }}>
+                                                ToDo List
+                                            </Typography>
+                                            <AccountMenu logout={logOut} deleteAccount={deleteAccount} />
+                                        </Toolbar>
 
-                                    <Box style={{ background: 'white', padding: '6px' }}>
-                                        <TodoInput todo={todo} setTodo={setTodo} addTodo={addTodo} />
-                                        <Box className="tabs-box" >
-                                            <Tabs value={tabIndex} onChange={handleTabChange}>
-                                                <Tab label="Todo" />
-                                                <Tab label="Done" />
-                                            </Tabs>
+                                        <Box style={{ background: theme.palette.background.main, padding: '6px' }}>
+                                            <TodoInput todo={todo} setTodo={setTodo} addTodo={addTodo} />
+                                            <Box className="tabs-box" >
+                                                <Tabs value={tabIndex} onChange={handleTabChange}>
+                                                    <Tab label="Todo" />
+                                                    <Tab label="Done" />
+                                                </Tabs>
+                                            </Box>
+                                            {alertMessage && <DisplayAlert message={alertMessage} onClose={closeAlert} />}
                                         </Box>
-                                        {alertMessage && <DisplayAlert message={alertMessage} onClose={closeAlert} />}
+                                    </AppBar>
+                                    <Box sx={{padding: '0px'}}>
+                                        {tabIndex === 0 && (
+                                            <TodoList
+                                                todos={todos.filter((todo) => !todo.done)}
+                                                remove={deleteTodo}
+                                                edit={(taskID, text) => editContent(taskID, text)}
+                                                toggleDone={toggleDone}
+                                                isDone={true}
+                                            />
+                                        )}
+                                        {tabIndex === 1 && (
+                                            <TodoList
+                                                todos={todos.filter((todo) => todo.done)}
+                                                remove={deleteTodo}
+                                                edit={(taskID, text) => editContent(taskID, text)}
+                                                toggleDone={toggleDone}
+                                                isDone={false}
+                                            />
+                                        )}
                                     </Box>
-                                </AppBar>
-                                <Box sx={{padding: '0px'}}>
-                                    {tabIndex === 0 && (
-                                        <TodoList
-                                            todos={todos.filter((todo) => !todo.done)}
-                                            remove={deleteTodo}
-                                            edit={(taskID, text) => editContent(taskID, text)}
-                                            toggleDone={toggleDone}
-                                            isDone={true}
-                                        />
-                                    )}
-                                    {tabIndex === 1 && (
-                                        <TodoList
-                                            todos={todos.filter((todo) => todo.done)}
-                                            remove={deleteTodo}
-                                            edit={(taskID, text) => editContent(taskID, text)}
-                                            toggleDone={toggleDone}
-                                            isDone={false}
-                                        />
-                                    )}
-                                </Box>
-                            </>
-                        ) : (
-                            <>
-                                <LoginPage setEmail={setEmail} setPassword={setPassword} />
-                            </>
-                        )}
-                    </Box>
-                </Paper>
-            </Container>
+                                </>
+                            ) : (
+                                <>
+                                    <LoginPage setEmail={setEmail} setPassword={setPassword} />
+                                </>
+                            )}
+                        </Box>
+                    </Paper>
+                </Container>
+            </Box>
         </ThemeProvider>
     );
 }

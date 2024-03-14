@@ -1,4 +1,4 @@
-import {ListItemText} from "@mui/material";
+import {ListItemText, useTheme} from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -7,6 +7,7 @@ import RemoveDoneIcon from "@mui/icons-material/RemoveDone";
 import React from "react";
 
 export const TodoItem = ({id, content, remove, startEditing, toggleDone, isDone}) => {
+    const theme = useTheme();
 
     return (
         <>
@@ -29,6 +30,7 @@ export const TodoItem = ({id, content, remove, startEditing, toggleDone, isDone}
                         whiteSpace: 'pre-wrap',
                         wordWrap: 'break-word',
                     },
+                    color: theme.palette.text.main,
                 }}
             />
 

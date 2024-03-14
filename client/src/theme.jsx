@@ -1,30 +1,61 @@
 import {createTheme} from "@mui/material/styles";
 
-export const theme = createTheme({
+export const getDesignTokens = (mode) => ({
+    palette: {
+        mode,
+        ...(mode === 'light'
+        ? {
+            //palette values for light mode
+                primary: {
+                    main: "#26577C"
+                },
+
+                delete: {
+                    main: "#b90000"
+                },
+
+                background: {
+                    main: "#FFFFFF"
+                },
+
+                text: {
+                    main: "#000000"
+                }
+            } : {
+            //palette values for dark mode
+                primary: {
+                    main: "#1688d8",
+                },
+
+                delete: {
+                    main: "#b90000"
+                },
+
+                background: {
+                    main: "#2b2b2b"
+                },
+
+                text: {
+                    main: "#FFFFFF"
+                }
+            })
+    }
+});
+
+const theme = createTheme({
     palette: {
         primary: {
             main: "#26577C",
 
         },
-        secondary: {
-            main: "#EBE4D1",
-
-        },
-
-        background: {
-            main: "#B4B4B3",
-        },
-
-        text: {
-            main: "#E55604",
-        },
-
-        neutral: {
-            main: "#000000"
-        },
 
         delete: {
             main: "#b90000"
+        },
+
+        text: {
+            main: "#000000"
         }
     }
 });
+
