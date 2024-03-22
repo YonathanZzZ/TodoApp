@@ -1,7 +1,11 @@
 # Todo App
 
 This project is a full-stack Todo application built with React for the client-side and Node.js for the server-side. It provides basic Todo functionalities such as adding tasks, editing tasks, removing tasks, and marking tasks as done. Additionally, users can register and login to access their personalized Todo lists, and their data is securely stored in an SQL database.
-Features
+
+## Access the app
+You can access the deployed Todo app [here](https://todo-yonathan-43eab9f75c75.herokuapp.com/)
+
+## Features
 
 * User Authentication: Users can register and login to access their Todo lists. User passwords are securely encrypted using bcrypt and stored in the database.
 
@@ -27,5 +31,4 @@ Features
 
 * Socket.io: Enables real-time bidirectional event-based communication between clients and the server.
 
-## Access the app
-You can access the deployed Todo app [here](https://todo-yonathan-43eab9f75c75.herokuapp.com/)
+
