@@ -1,9 +1,9 @@
 import "./App.css";
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import TodoInput from "./TodoInput";
 import TodoList from "./TodoList";
 import DisplayAlert from "./DisplayAlert";
-import {AppBar, Box, Container, CssBaseline, Paper, Tab, Tabs, ThemeProvider, Toolbar, Typography} from "@mui/material";
+import {AppBar, Box, Container, Paper, Tab, Tabs, ThemeProvider, Toolbar, Typography} from "@mui/material";
 import {getDesignTokens} from "./theme";
 import {
     addTaskToDB,
@@ -32,6 +32,9 @@ function App() {
     const serverURL = import.meta.env.DEV ? 'http://localhost:8080' : window.location.origin;
     const [mode, setMode] = useState('light');
     const socketRef = useRef(null);
+
+    const TODO_TAB = 0;
+    const DONE_TAB = 1;
 
     const theme = createTheme(getDesignTokens(mode));
 
@@ -200,6 +203,10 @@ function App() {
         const newTodo = {id: taskID, content: todo, done: false};
         addTodoToState(newTodo);
 
+        if(tabIndex === DONE_TAB){
+            setTabIndex(TODO_TAB);
+        }
+
         setTodo("");
         //add to database (combine email with newTodo into a single json)
         //addTaskToDB({...newTodo, email: email}).then(() => {
@@ -324,7 +331,7 @@ function App() {
                                         </Box>
                                     </AppBar>
                                     <Box sx={{padding: '0px'}}>
-                                        {tabIndex === 0 && (
+                                        {tabIndex === TODO_TAB && (
                                             <TodoList
                                                 todos={todos.filter((todo) => !todo.done)}
                                                 remove={deleteTodo}
@@ -333,7 +340,7 @@ function App() {
                                                 isDone={true}
                                             />
                                         )}
-                                        {tabIndex === 1 && (
+                                        {tabIndex === DONE_TAB && (
                                             <TodoList
                                                 todos={todos.filter((todo) => todo.done)}
                                                 remove={deleteTodo}
