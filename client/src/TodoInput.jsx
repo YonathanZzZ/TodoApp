@@ -1,13 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
 import Button from "@mui/material/Button";
 import {TextField} from "@mui/material";
 
-const TodoInput = ({todo, setTodo, addTodo}) => {
+const TodoInput = ({addTodo}) => {
 
-    //use Enter keypress to submit input
-    const keyDownHandler = (e) => {
+    const [input, setInput] = useState("");
+
+    const handleClick = () => {
+        addTodo(input);
+        setInput("");
+    }
+
+    const handleKeyDown = (e) => {
         if (e.key === "Enter") {
-            addTodo();
+            handleClick();
         }
     }
 
@@ -19,13 +25,13 @@ const TodoInput = ({todo, setTodo, addTodo}) => {
                 autoFocus={true}
                 variant="filled"
                 label="Enter task"
-                value={todo}
+                value={input}
                 fullWidth={true}
                 onChange={(e) => {
-                    setTodo(e.target.value);
+                    setInput(e.target.value);
                 }}
 
-                onKeyDown={keyDownHandler}
+                onKeyDown={handleKeyDown}
             />
 
             <Button size="small" variant="contained" onClick={addTodo}>Add Task</Button>
