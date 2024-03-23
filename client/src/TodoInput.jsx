@@ -34,7 +34,7 @@ const TodoInput = ({addTodo}) => {
                 onKeyDown={handleKeyDown}
             />
 
-            <Button size="small" variant="contained" onClick={addTodo}>Add Task</Button>
+            <Button size="small" variant="contained" onClick={handleClick}>Add Task</Button>
 
         </div>
     );

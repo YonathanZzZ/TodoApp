@@ -31,9 +31,9 @@ import { v4 as uuidv4 } from "uuid";
 import { io } from "socket.io-client";
 import { createTheme } from "@mui/material/styles";
 import { ThemeToggle } from "./ThemeToggle";
+import TodoContainer from "./TodoContainer";
 
 function App() {
-  
   const [todos, setTodos] = useState([]);
   const [alertMessage, setAlertMessage] = useState("");
   const [email, setEmail] = useState("");
@@ -44,9 +44,6 @@ function App() {
     : window.location.origin;
   const [mode, setMode] = useState("light");
   const socketRef = useRef(null);
-
-  const TODO_TAB = 0;
-  const DONE_TAB = 1;
 
   const theme = createTheme(getDesignTokens(mode));
 
@@ -216,8 +213,6 @@ function App() {
     const newTodo = { id: taskID, content: todo, done: false };
     addTodoToState(newTodo);
 
-    setTabIndex(TODO_TAB);
-
     //add to database (combine email with newTodo into a single json)
     //addTaskToDB({...newTodo, email: email}).then(() => {
     addTaskToDB(newTodo)
@@ -318,10 +313,6 @@ function App() {
       });
   };
 
-  const handleTabChange = (event, index) => {
-    setTabIndex(index);
-  };
-
   return (
     <ThemeProvider theme={theme}>
       <Box style={{ backgroundColor: theme.palette.background.main }}>
@@ -351,15 +342,8 @@ function App() {
                         padding: "6px",
                       }}
                     >
-                      <TodoInput
-                        addTodo={addTodo}
-                      />
-                      <Box className="tabs-box">
-                        <Tabs value={tabIndex} onChange={handleTabChange}>
-                          <Tab label="Todo" />
-                          <Tab label="Done" />
-                        </Tabs>
-                      </Box>
+                      <TodoInput addTodo={addTodo} />
+
                       {alertMessage && (
                         <DisplayAlert
                           message={alertMessage}
@@ -369,24 +353,12 @@ function App() {
                     </Box>
                   </AppBar>
                   <Box sx={{ padding: "0px" }}>
-                    {tabIndex === TODO_TAB && (
-                      <TodoList
-                        todos={todos.filter((todo) => !todo.done)}
-                        remove={deleteTodo}
-                        edit={(taskID, text) => editContent(taskID, text)}
-                        toggleDone={toggleDone}
-                        isDone={true}
-                      />
-                    )}
-                    {tabIndex === DONE_TAB && (
-                      <TodoList
-                        todos={todos.filter((todo) => todo.done)}
-                        remove={deleteTodo}
-                        edit={(taskID, text) => editContent(taskID, text)}
-                        toggleDone={toggleDone}
-                        isDone={false}
-                      />
-                    )}
+                    <TodoContainer
+                      todos={todos}
+                      remove={deleteTodo}
+                      edit={editContent}
+                      toggleDone={toggleDone}
+                    />
                   </Box>
                 </>
               ) : (

@@ -8,7 +8,6 @@ import React from "react";
 
 export const TodoItem = ({id, content, remove, startEditing, toggleDone, isDone}) => {
     const theme = useTheme();
-
     return (
         <>
             <IconButton
@@ -19,7 +18,7 @@ export const TodoItem = ({id, content, remove, startEditing, toggleDone, isDone}
                     toggleDone(id);
                 }}
             >
-                {isDone ? <DoneIcon/> : <RemoveDoneIcon/>}
+                {isDone ? <RemoveDoneIcon/> : <DoneIcon/>}
             </IconButton>
 
             <ListItemText
