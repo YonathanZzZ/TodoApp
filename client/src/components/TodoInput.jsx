@@ -9,6 +9,7 @@ const TodoInput = ({addTodo}) => {
     const handleClick = () => {
         addTodo(input);
         setInput("");
+
     }
 
     const handleKeyDown = (e) => {

@@ -17,10 +17,7 @@ const TodoContainer = ({todos, remove, edit, toggleDone}) => {
             ) : (
                 <TodoList todos={todos.filter((todo) => todo.done)} remove={remove} edit={edit} toggleDone={toggleDone} isDone={true}/>
             )}
-            
-            
         </Box>
-        
     )
 }
 

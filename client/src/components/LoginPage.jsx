@@ -5,7 +5,7 @@ import Button from "@mui/material/Button";
 import {addUser, validateUser} from "./sendRequestToServer";
 import Cookies from 'js-cookie';
 import isEmail from 'validator/lib/isEmail';
-export const LoginPage = ({setEmail, setPassword}) => {
+export const LoginPage = ({setEmail}) => {
 
     const [emailInput, setEmailInput] = useState("");
     const [passwordInput, setPasswordInput] = useState("");
@@ -26,7 +26,7 @@ export const LoginPage = ({setEmail, setPassword}) => {
             });
 
             setEmail(emailInput);
-            setPassword(passwordInput);
+            setPasswordInput("");
 
         }).catch((error)=>{
             console.error('user unauthorized: ', error);

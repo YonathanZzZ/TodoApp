@@ -1,15 +1,12 @@
-import "./App.css";
-import { useEffect, useRef, useState } from "react";
+import "../App.css";
+import { useEffect, useState } from "react";
 import TodoInput from "./TodoInput";
-import TodoList from "./TodoList";
 import DisplayAlert from "./DisplayAlert";
 import {
   AppBar,
   Box,
   Container,
   Paper,
-  Tab,
-  Tabs,
   ThemeProvider,
   Toolbar,
   Typography,
@@ -28,22 +25,20 @@ import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import { AccountMenu } from "./AccountMenu";
 import { v4 as uuidv4 } from "uuid";
-import { io } from "socket.io-client";
 import { createTheme } from "@mui/material/styles";
 import { ThemeToggle } from "./ThemeToggle";
 import TodoContainer from "./TodoContainer";
+import {initSocket, sendEvent} from './SocketManager';
 
 function App() {
   const [todos, setTodos] = useState([]);
   const [alertMessage, setAlertMessage] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [tabIndex, setTabIndex] = useState(0);
   const serverURL = import.meta.env.DEV
     ? "http://localhost:8080"
     : window.location.origin;
   const [mode, setMode] = useState("light");
-  const socketRef = useRef(null);
+  //const socketRef = useRef(null);
 
   const theme = createTheme(getDesignTokens(mode));
 
@@ -103,66 +98,69 @@ function App() {
       return;
     }
 
-    //socket setup
-    if (!socketRef.current) {
-      const socket = io(serverURL, {
-        autoConnect: false,
-        query: {
-          email: email,
-        },
-      });
+    initSocket(email, serverURL, setTodos);
 
-      socketRef.current = socket;
-
-      const onTaskAdded = (newTask) => {
-        setTodos((prevTodos) => [...prevTodos, newTask]);
-      };
-
-      const onTaskRemoved = (taskID) => {
-        setTodos((prevTodos) => {
-          return prevTodos.filter((item) => item.id !== taskID);
-        });
-      };
-
-      const onTaskEdited = (data) => {
-        const taskID = data.id;
-        const newContent = data.newContent;
-
-        setTodos((prevTodos) =>
-          prevTodos.map((todo) => {
-            if (todo.id === taskID) {
-              return { ...todo, content: newContent }; // change 'content' field
-            }
-            return todo;
-          })
-        );
-      };
-
-      const onToggleDone = (data) => {
-        const taskID = data.id;
-        const newDoneValue = data.done;
-
-        setTodos((prevTodos) =>
-          prevTodos.map((todo) => {
-            if (todo.id === taskID) {
-              return { ...todo, done: newDoneValue };
-            }
-            return todo;
-          })
-        );
-      };
-
-      socket.on("addTask", onTaskAdded);
-      socket.on("deleteTask", onTaskRemoved);
-      socket.on("editTask", onTaskEdited);
-      socket.on("toggleDone", onToggleDone);
-
-      socket.connect();
-    }
-
-    return () => {
-      socketRef.current.removeAllListeners();
-    };
+    // //socket setup
+    // if (!socket) {
+    //   //create and configure socket
+    //   const socket = io(serverURL, {
+    //     autoConnect: false,
+    //     query: {
+    //       email: email,
+    //     },
+    //   });
+    //
+    //   socket = socket;
+    //
+    //   const onTaskAdded = (newTask) => {
+    //     setTodos((prevTodos) => [...prevTodos, newTask]);
+    //   };
+    //
+    //   const onTaskRemoved = (taskID) => {
+    //     setTodos((prevTodos) => {
+    //       return prevTodos.filter((item) => item.id !== taskID);
+    //     });
+    //   };
+    //
+    //   const onTaskEdited = (data) => {
+    //     const taskID = data.id;
+    //     const newContent = data.newContent;
+    //
+    //     setTodos((prevTodos) =>
+    //       prevTodos.map((todo) => {
+    //         if (todo.id === taskID) {
+    //           return { ...todo, content: newContent }; // change 'content' field
+    //         }
+    //         return todo;
+    //       })
+    //     );
+    //   };
+    //
+    //   const onToggleDone = (data) => {
+    //     const taskID = data.id;
+    //     const newDoneValue = data.done;
+    //
+    //     setTodos((prevTodos) =>
+    //       prevTodos.map((todo) => {
+    //         if (todo.id === taskID) {
+    //           return { ...todo, done: newDoneValue };
+    //         }
+    //         return todo;
+    //       })
+    //     );
+    //   };
+    //
+    //   socket.on("addTask", onTaskAdded);
+    //   socket.on("deleteTask", onTaskRemoved);
+    //   socket.on("editTask", onTaskEdited);
+    //   socket.on("toggleDone", onToggleDone);
+    //
+    //   socket.connect();
+    // }
+    //
+    // return () => {
+    //   socket.removeAllListeners();
+    // };
   }, [email]);
 
   const closeAlert = () => {
@@ -218,7 +216,7 @@ function App() {
     addTaskToDB(newTodo)
       .then(() => {
         //emit event to socket to update other clients of the same user
-        socketRef.current.emit("addTask", newTodo);
+        sendEvent("addTask", newTodo);
       })
       .catch((error) => {
         console.error("Error adding task to db: ", error);
@@ -240,7 +238,7 @@ function App() {
     //remove from db
     deleteTaskFromDB(taskID)
       .then(() => {
-        socketRef.current.emit("deleteTask", taskID);
+        sendEvent("deleteTask", taskID);
       })
       .catch(() => {
         setAlertMessage("Failed to delete task on server");
@@ -255,7 +253,6 @@ function App() {
   };
 
   const editContent = (taskID, updatedContent) => {
-    //const contentBackup = todos[index].content;
     const contentBackup = todos.map((todo) => {
       if (todo.id === taskID) {
         return todo.content;
@@ -267,7 +264,7 @@ function App() {
     //update task in db
     editTaskOnDB({ id: taskID }, { content: updatedContent })
       .then(() => {
-        socketRef.current.emit("editTask", {
+        sendEvent("editTask", {
           id: taskID,
           newContent: updatedContent,
         });
@@ -288,7 +285,7 @@ function App() {
 
     editTaskOnDB({ id: taskID }, { done: !doneValue })
       .then(() => {
-        socketRef.current.emit("toggleDone", { id: taskID, done: !doneValue });
+        sendEvent("toggleDone", { id: taskID, done: !doneValue });
       })
       .catch(() => {
         setAlertMessage("Failed to update task on server");
@@ -363,7 +360,7 @@ function App() {
                 </>
               ) : (
                 <>
-                  <LoginPage setEmail={setEmail} setPassword={setPassword} />
+                  <LoginPage setEmail={setEmail} />
                 </>
               )}
             </Box>
