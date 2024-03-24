@@ -1,311 +1,310 @@
 import "../App.css";
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 import TodoInput from "./TodoInput";
 import DisplayAlert from "./DisplayAlert";
 import {
-  AppBar,
-  Box,
-  Container,
-  Paper,
-  ThemeProvider,
-  Toolbar,
-  Typography,
+    AppBar,
+    Box,
+    Container,
+    Paper,
+    ThemeProvider,
+    Toolbar,
+    Typography,
 } from "@mui/material";
-import { getDesignTokens } from "./theme";
+import {getDesignTokens} from "./theme";
 import {
-  addTaskToDB,
-  deleteTaskFromDB,
-  deleteUserFromDB,
-  editTaskOnDB,
-  getTasksFromDB,
-  verifyToken,
+    addTaskToDB,
+    deleteTaskFromDB,
+    deleteUserFromDB,
+    editTaskOnDB,
+    getTasksFromDB,
+    verifyToken,
 } from "./sendRequestToServer";
-import { LoginPage } from "./LoginPage";
+import {LoginPage} from "./LoginPage";
 import Cookies from "js-cookie";
-import { jwtDecode } from "jwt-decode";
-import { AccountMenu } from "./AccountMenu";
-import { v4 as uuidv4 } from "uuid";
-import { createTheme } from "@mui/material/styles";
-import { ThemeToggle } from "./ThemeToggle";
+import {jwtDecode} from "jwt-decode";
+import {AccountMenu} from "./AccountMenu";
+import {v4 as uuidv4} from "uuid";
+import {createTheme} from "@mui/material/styles";
+import {ThemeToggle} from "./ThemeToggle";
 import TodoContainer from "./TodoContainer";
 import {initSocket, sendEvent} from './SocketManager';
 
 function App() {
-  const [todos, setTodos] = useState([]);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [email, setEmail] = useState("");
-  const serverURL = import.meta.env.DEV
-    ? "http://localhost:8080"
-    : window.location.origin;
-  const [mode, setMode] = useState("light");
-  //const socketRef = useRef(null);
+    const [todos, setTodos] = useState([]);
+    const [alertMessage, setAlertMessage] = useState("");
+    const [email, setEmail] = useState("");
+    const serverURL = import.meta.env.DEV
+        ? "http://localhost:8080"
+        : window.location.origin;
+    const [mode, setMode] = useState("light");
+    const theme = createTheme(getDesignTokens(mode));
 
-  const theme = createTheme(getDesignTokens(mode));
+    useEffect(() => {
+        const userSetting = localStorage.getItem("mode");
+        if (userSetting) {
+            setMode(userSetting);
+            return;
+        }
 
-  useEffect(() => {
-    const userSetting = localStorage.getItem("mode");
-    if (userSetting) {
-      setMode(userSetting);
-      return;
-    }
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        const handleChange = (e) => {
+            setMode(e.matches ? "dark" : "light");
+        };
 
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = (e) => {
-      setMode(e.matches ? "dark" : "light");
+        handleChange(mediaQuery);
+
+        mediaQuery.addEventListener("change", handleChange);
+
+        return () => {
+            mediaQuery.removeEventListener("change", handleChange);
+        };
+    }, []);
+
+    useEffect(() => {
+        const token = Cookies.get("token");
+        if (!token) {
+            return;
+        }
+        verifyToken(token)
+            .then(() => {
+                const decodedToken = jwtDecode(token);
+                const emailFromToken = decodedToken.email;
+                setEmail(emailFromToken);
+            })
+            .catch(() => {
+                //token verification failed
+            });
+    }, []);
+
+    useEffect(() => {
+        if (!email) {
+            return;
+        }
+
+        getTasksFromDB(email)
+            .then((res) => {
+                setTodos(res.data);
+            })
+            .catch(() => {
+                setAlertMessage("Could not load tasks from server");
+            });
+    }, [email]); //run when user connects
+
+    useEffect(() => {
+        if (!email) {
+            return;
+        }
+
+        initSocket(email, serverURL, setTodos);
+    }, [email]);
+
+    const closeAlert = () => {
+        setAlertMessage("");
     };
 
-    handleChange(mediaQuery);
-
-    mediaQuery.addEventListener("change", handleChange);
-
-    return () => {
-      mediaQuery.removeEventListener("change", handleChange);
+    const addTodoToState = (newTodo) => {
+        const newTodos = [...todos, newTodo];
+        setTodos(newTodos);
     };
-  }, []);
 
-  useEffect(() => {
-    const token = Cookies.get("token");
-    if (!token) {
-      return;
-    }
-    verifyToken(token)
-      .then(() => {
-        const decodedToken = jwtDecode(token);
-        const emailFromToken = decodedToken.email;
-        setEmail(emailFromToken);
-      })
-      .catch(() => {
-        //token verification failed
-      });
-  }, []);
+    const deleteTodoFromState = (taskID) => {
+        const newTodos = todos.filter((todo) => todo.id !== taskID);
+        setTodos(newTodos);
+    };
 
-  useEffect(() => {
-    if (!email) {
-      return;
-    }
+    const editTodoOnState = (taskID, updatedContent) => {
+        const newTodos = todos.map((todo) => {
+            if (todo.id === taskID) {
+                return {...todo, content: updatedContent};
+            }
 
-    getTasksFromDB(email)
-      .then((res) => {
-        setTodos(res.data);
-      })
-      .catch(() => {
-        setAlertMessage("Could not load tasks from server");
-      });
-  }, [email]); //run when user connects
-
-  useEffect(() => {
-    if (!email) {
-      return;
-    }
-
-    initSocket(email, serverURL, setTodos);
-  }, [email]);
-
-  const closeAlert = () => {
-    setAlertMessage("");
-  };
-
-  const addTodoToState = (newTodo) => {
-    const newTodos = [...todos, newTodo];
-    setTodos(newTodos);
-  };
-
-  const deleteTodoFromState = (taskID) => {
-    const newTodos = todos.filter((todo) => todo.id !== taskID);
-    setTodos(newTodos);
-  };
-
-  const editTodoOnState = (taskID, updatedContent) => {
-    const newTodos = todos.map((todo) => {
-      if (todo.id === taskID) {
-        return { ...todo, content: updatedContent };
-      }
-
-      return todo;
-    });
-
-    setTodos(newTodos);
-  };
-
-  const toggleDoneOnState = (taskID) => {
-    const newTodos = todos.map((todo) => {
-      if (todo.id === taskID) {
-        return { ...todo, done: !todo.done };
-      }
-
-      return todo;
-    });
-
-    setTodos(newTodos);
-  };
-
-  const addTodo = (todo) => {
-    if (todo === "") {
-      return;
-    }
-
-    const taskID = uuidv4();
-
-    const newTodo = { id: taskID, content: todo, done: false };
-    addTodoToState(newTodo);
-
-    //add to database (combine email with newTodo into a single json)
-    addTaskToDB(newTodo)
-      .then(() => {
-        //emit event to socket to update other clients of the same user
-        sendEvent("addTask", newTodo);
-      })
-      .catch((error) => {
-        console.error("Error adding task to db: ", error);
-        setAlertMessage("Failed to upload new task to server");
-
-        //delete task that failed to upload to database
-        deleteTodoFromState(taskID);
-      });
-  };
-
-  const deleteTodo = (taskID) => {
-    const index = taskIDToIndex(taskID);
-    const todoBackup = todos[index];
-
-    //remove task from client state
-    const newTodos = [...todos];
-    newTodos.splice(index, 1);
-    setTodos(newTodos);
-    //remove from db
-    deleteTaskFromDB(taskID)
-      .then(() => {
-        sendEvent("deleteTask", taskID);
-      })
-      .catch(() => {
-        setAlertMessage("Failed to delete task on server");
-
-        //restore task
-        addTodoToState(todoBackup);
-      });
-  };
-
-  const taskIDToIndex = (taskID) => {
-    return todos.findIndex((todo) => todo.id === taskID);
-  };
-
-  const editContent = (taskID, updatedContent) => {
-    const contentBackup = todos.map((todo) => {
-      if (todo.id === taskID) {
-        return todo.content;
-      }
-    });
-
-    editTodoOnState(taskID, updatedContent);
-
-    //update task in db
-    editTaskOnDB({ id: taskID }, { content: updatedContent })
-      .then(() => {
-        sendEvent("editTask", {
-          id: taskID,
-          newContent: updatedContent,
+            return todo;
         });
-      })
-      .catch(() => {
-        setAlertMessage("Failed to update task on server");
 
-        //restore previous content of task
-        editTodoOnState(taskID, contentBackup);
-      });
-  };
+        setTodos(newTodos);
+    };
 
-  const toggleDone = (taskID) => {
-    const task = todos.find((todo) => todo.id === taskID);
-    const doneValue = task.done;
+    const toggleDoneOnState = (taskID) => {
+        const newTodos = todos.map((todo) => {
+            if (todo.id === taskID) {
+                return {...todo, done: !todo.done};
+            }
 
-    toggleDoneOnState(taskID);
+            return todo;
+        });
 
-    editTaskOnDB({ id: taskID }, { done: !doneValue })
-      .then(() => {
-        sendEvent("toggleDone", { id: taskID, done: !doneValue });
-      })
-      .catch(() => {
-        setAlertMessage("Failed to update task on server");
+        setTodos(newTodos);
+    };
 
-        //restore old done value
+    const addTodo = (todo) => {
+        if (todo === "") {
+            return;
+        }
+
+        const taskID = uuidv4();
+
+        const newTodo = {id: taskID, content: todo, done: false};
+        addTodoToState(newTodo);
+
+        //add to database (combine email with newTodo into a single json)
+        addTaskToDB(newTodo)
+            .then(() => {
+                //emit event to socket to update other clients of the same user
+                sendEvent("addTask", newTodo);
+            })
+            .catch((error) => {
+                console.error("Error adding task to db: ", error);
+                setAlertMessage("Failed to upload new task to server");
+
+                //delete task that failed to upload to database
+                deleteTodoFromState(taskID);
+            });
+    };
+
+    const deleteTodo = (taskID) => {
+        const index = taskIDToIndex(taskID);
+        const todoBackup = todos[index];
+
+        //remove task from client state
+        const newTodos = [...todos];
+        newTodos.splice(index, 1);
+        setTodos(newTodos);
+        //remove from db
+        deleteTaskFromDB(taskID)
+            .then(() => {
+                sendEvent("deleteTask", taskID);
+            })
+            .catch(() => {
+                setAlertMessage("Failed to delete task on server");
+
+                //restore task
+                addTodoToState(todoBackup);
+            });
+    };
+
+    const taskIDToIndex = (taskID) => {
+        return todos.findIndex((todo) => todo.id === taskID);
+    };
+
+    const editContent = (taskID, updatedContent) => {
+        const contentBackup = todos.map((todo) => {
+            if (todo.id === taskID) {
+                return todo.content;
+            }
+        });
+
+        editTodoOnState(taskID, updatedContent);
+
+        //update task in db
+        editTaskOnDB({id: taskID}, {content: updatedContent})
+            .then(() => {
+                sendEvent("editTask", {
+                    id: taskID,
+                    newContent: updatedContent,
+                });
+            })
+            .catch(() => {
+                setAlertMessage("Failed to update task on server");
+
+                //restore previous content of task
+                editTodoOnState(taskID, contentBackup);
+            });
+    };
+
+    const toggleDone = (taskID) => {
+        const task = todos.find((todo) => todo.id === taskID);
+        const doneValue = task.done;
+
         toggleDoneOnState(taskID);
-      });
-  };
 
-  const logOut = () => {
-    Cookies.remove("token");
-    setEmail("");
-  };
+        editTaskOnDB({id: taskID}, {done: !doneValue})
+            .then(() => {
+                sendEvent("toggleDone", {id: taskID, done: !doneValue});
+            })
+            .catch(() => {
+                setAlertMessage("Failed to update task on server");
 
-  const deleteAccount = () => {
-    deleteUserFromDB()
-      .then(() => {
-        logOut();
-      })
-      .catch(() => {
-        setAlertMessage("Failed to delete account");
-      });
-  };
+                //restore old done value
+                toggleDoneOnState(taskID);
+            });
+    };
 
-  return (
-    <ThemeProvider theme={theme}>
-      <Box style={{ backgroundColor: theme.palette.background.main }}>
-        <Container maxWidth="sm" sx={{ height: "100%", padding: 0 }}>
-          <Paper elevation={5} style={{ height: "100vh", overflow: "auto" }}>
-            <Box>
-              {email ? (
-                <>
-                  <AppBar position="sticky">
-                    <Toolbar>
-                      <ThemeToggle mode={mode} setMode={setMode} />
-                      <Typography
-                        variant="h5"
-                        sx={{ flexGrow: 1, textAlign: "center" }}
-                      >
-                        ToDo List
-                      </Typography>
-                      <AccountMenu
-                        logout={logOut}
-                        deleteAccount={deleteAccount}
-                      />
-                    </Toolbar>
+    const logOut = () => {
+        Cookies.remove("token");
+        setEmail("");
+    };
 
-                    <Box
-                      style={{
-                        background: theme.palette.background.main,
-                        padding: "6px",
-                      }}
-                    >
-                      <TodoInput addTodo={addTodo} />
+    const deleteAccount = () => {
+        deleteUserFromDB()
+            .then(() => {
+                logOut();
+            })
+            .catch(() => {
+                setAlertMessage("Failed to delete account");
+            });
+    };
 
-                      {alertMessage && (
-                        <DisplayAlert
-                          message={alertMessage}
-                          onClose={closeAlert}
-                        />
-                      )}
-                    </Box>
-                  </AppBar>
-                  <Box sx={{ padding: "0px" }}>
-                    <TodoContainer
-                      todos={todos}
-                      remove={deleteTodo}
-                      edit={editContent}
-                      toggleDone={toggleDone}
-                    />
-                  </Box>
-                </>
-              ) : (
-                <>
-                  <LoginPage setEmail={setEmail} />
-                </>
-              )}
-            </Box>
-          </Paper>
-        </Container>
-      </Box>
-    </ThemeProvider>
-  );
+    return (
+        <ThemeProvider theme={theme}>
+                <Container maxWidth={false} sx={{
+                    height: "100vh",
+                    padding: 0,
+                    backgroundColor: theme.palette.background.main,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center"}}>
+                    <Paper elevation={5} sx={{width: "100%", maxWidth: "sm",height: "100vh", overflow: "auto"}}>
+                        {email ? (
+                            <>
+                                <AppBar position="sticky">
+                                    <Toolbar>
+                                        <ThemeToggle mode={mode} setMode={setMode}/>
+                                        <Typography
+                                            variant="h5"
+                                            sx={{flexGrow: 1, textAlign: "center"}}
+                                        >
+                                            ToDo List
+                                        </Typography>
+                                        <AccountMenu
+                                            logout={logOut}
+                                            deleteAccount={deleteAccount}
+                                        />
+                                    </Toolbar>
+
+                                    <Box
+                                        style={{
+                                            background: theme.palette.background.main,
+                                            padding: "6px",
+                                        }}
+                                    >
+                                        <TodoInput addTodo={addTodo}/>
+
+                                        {alertMessage && (
+                                            <DisplayAlert
+                                                message={alertMessage}
+                                                onClose={closeAlert}
+                                            />
+                                        )}
+                                    </Box>
+                                </AppBar>
+                                <TodoContainer
+                                    todos={todos}
+                                    remove={deleteTodo}
+                                    edit={editContent}
+                                    toggleDone={toggleDone}
+                                />
+                            </>
+                        ) : (
+                            <>
+                                <LoginPage setEmail={setEmail}/>
+                            </>
+                        )}
+                    </Paper>
+                </Container>
+        </ThemeProvider>
+    );
 }
 
 export default App;
