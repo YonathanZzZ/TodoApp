@@ -99,68 +99,6 @@ function App() {
     }
 
     initSocket(email, serverURL, setTodos);
-
-    // //socket setup
-    // if (!socket) {
-    //   //create and configure socket
-    //   const socket = io(serverURL, {
-    //     autoConnect: false,
-    //     query: {
-    //       email: email,
-    //     },
-    //   });
-    //
-    //   socket = socket;
-    //
-    //   const onTaskAdded = (newTask) => {
-    //     setTodos((prevTodos) => [...prevTodos, newTask]);
-    //   };
-    //
-    //   const onTaskRemoved = (taskID) => {
-    //     setTodos((prevTodos) => {
-    //       return prevTodos.filter((item) => item.id !== taskID);
-    //     });
-    //   };
-    //
-    //   const onTaskEdited = (data) => {
-    //     const taskID = data.id;
-    //     const newContent = data.newContent;
-    //
-    //     setTodos((prevTodos) =>
-    //       prevTodos.map((todo) => {
-    //         if (todo.id === taskID) {
-    //           return { ...todo, content: newContent }; // change 'content' field
-    //         }
-    //         return todo;
-    //       })
-    //     );
-    //   };
-    //
-    //   const onToggleDone = (data) => {
-    //     const taskID = data.id;
-    //     const newDoneValue = data.done;
-    //
-    //     setTodos((prevTodos) =>
-    //       prevTodos.map((todo) => {
-    //         if (todo.id === taskID) {
-    //           return { ...todo, done: newDoneValue };
-    //         }
-    //         return todo;
-    //       })
-    //     );
-    //   };
-    //
-    //   socket.on("addTask", onTaskAdded);
-    //   socket.on("deleteTask", onTaskRemoved);
-    //   socket.on("editTask", onTaskEdited);
-    //   socket.on("toggleDone", onToggleDone);
-    //
-    //   socket.connect();
-    // }
-    //
-    // return () => {
-    //   socket.removeAllListeners();
-    // };
   }, [email]);
 
   const closeAlert = () => {
@@ -212,7 +150,6 @@ function App() {
     addTodoToState(newTodo);
 
     //add to database (combine email with newTodo into a single json)
-    //addTaskToDB({...newTodo, email: email}).then(() => {
     addTaskToDB(newTodo)
       .then(() => {
         //emit event to socket to update other clients of the same user
